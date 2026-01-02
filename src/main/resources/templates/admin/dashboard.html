@@ -1,0 +1,130 @@
+<!-- \src\main\resources\templates\admin\dashboard.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adimn || Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap ICON -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin/dashboard.css}">
+</head>
+<body>
+    <div class="d-flex flex-column flex-lg-row min-vh-100">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 flex-shrink-0" id="sidebar" style="min-width: 230px;">
+            <button class="btn btn-outline-light d-lg-none mb-3" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <h4>EMS</h4>
+            <nav class="nav flex-column mt-3">
+                <a th:href="@{/admin/dashboard}" class="nav-link active bg-secondary rounded"><i class="bi bi-house"></i>Overview</a>
+                <a th:href="@{/admin/profile}" class="nav-link text-white"><i class="bi bi-person"></i>Profile</a>
+                <a th:href="@{/admin/attendance}" class="nav-link text-white"><i class="bi bi-clock"></i>Attendance</a>
+                <a th:href="@{/admin/leave}" class="nav-link text-white"><i class="bi bi-calendar"></i>Leave</a>
+                <a th:href="@{/admin/hourlyReports}" class="nav-link text-white"><i class="bi bi-list-check me-2"></i>Hourly Reports</a>
+                <!--<a th:href="@{/admin/payroll}" class="nav-link"><i class="bi bi-cash"></i>Payroll</a>
+                <a th:href="@{/admin/payslip}" class="nav-link"><i class="bi bi-file-earmark-text"></i>Payslip</a>-->
+                <a th:href="@{/admin/adminNotifications}" class="nav-link text-white"><i class="bi bi-bell"></i>Notifications</a>
+                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right"></i>Logout</a>
+            </nav>
+        </div>
+    
+        <!-- Main Content -->
+        <div id="content" class="flex-grow-1 main-content">
+            <!-- Toggle Button -->
+            <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+    
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
+                <div class="container-fluid d-lg-flex align-items-center  justify-content-between">
+                    <span class="fw-semibold my-1 my-sm-0"><span id="greetingMessage"></span> <br>
+                        <small class="text-muted">It’s <span id="currentDate"></span></small></span>
+                    <div class="d-flex justify-content-evenly align-items-center">
+                        <img th:src="@{/images/img2.png}" class="avatar" alt="user">
+                    </div>
+                </div>
+            </nav>
+    
+            <!-- Dashboard Cards -->
+            <div class="container-fluid mt-4">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="card-stats text-success">
+                            <h3 th:text="${totalEmployees}"></h3>
+                            <p>Total Employees</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-stats text-purple">
+                            <h3 th:text="${attenPresent}"></h3>
+                            <p>Today Present</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-stats text-primary">
+                            <h3 th:text="${attenAbsent}"></h3>
+                            <p>Today Absent</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-stats text-warning">
+                            <h3  th:text="${remainingHolidays}"></h3>
+                            <p>Holidays this year</p>
+                        </div>
+                    </div>
+                    
+                </div>
+                <!-- Charts -->
+                <div class="row mt-4">
+                    <div class="col-12 col-sm-6 col-lg-8 my-3 my-sm-0">
+                        <div class="chart-container">
+                            <h5>Attendance For Last Week</h5>
+                            <canvas id="workingTimesChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <div class="chart-container">
+                            <h5>Employee Structure</h5>
+                            <!-- Somewhere inside <body> -->
+                            <div id="employeeData"
+                                th:data-male="${maleCount}"
+                                th:data-female="${femaleCount}">
+                            </div>
+                            <canvas id="employeeStructureChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Sidebar Toggle -->
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.add('active-sidebar');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+        sidebar.classList.remove('active-sidebar');
+        });
+    </script>
+
+    <!-- External JS -->
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

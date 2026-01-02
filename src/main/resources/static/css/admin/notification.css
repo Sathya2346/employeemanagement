@@ -1,0 +1,233 @@
+
+/* ===== Global ===== */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f9f8;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ===== Sidebar (Updated same as first file) ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background-color: #23d2aa; /* original color */
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1050;
+    padding: 20px 20px;
+}
+
+.sidebar h4 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 3px 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-size: 1rem; /* fixed font size for all devices */
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: #50d2b3; /* original hover color */
+    transform: translateX(5px);
+}
+
+/* ===== Main Content ===== */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    background: #ffffff;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.avatar{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ===== Leave Table Status ===== */
+.status {
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.status.approved {
+    background-color: #28a745;
+    color: white;
+}
+.status.rejected {
+    background-color: #dc3545;
+    color: white;
+}
+.status.pending {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* ===== Hover effects for table rows ===== */
+table tbody tr {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+table tbody tr:hover {
+    background-color: rgba(50, 211, 163, 0.1);
+    transform: translateX(3px);
+}
+
+/* ===== Notification Styles ===== */
+.notification-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.notification-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+.notification-info {
+    display: flex;
+    align-items: center;
+}
+.notification-info i {
+    font-size: 1.5rem;
+    margin-right: 12px;
+    color: #23d2aa;
+}
+.notification-text {
+    display: flex;
+    flex-direction: column;
+}
+.notification-text span {
+    font-weight: 500;
+}
+.notification-text small {
+    color: #666;
+}
+.notification-time {
+    font-size: 0.85rem;
+    color: #888;
+}
+.btn-view {
+    background-color: #23d2aa;
+    color: white;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+.btn-view:hover {
+    background-color: #50d2b3;
+    transform: scale(1.05);
+}
+
+/* ==== Notification ==== */
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-wrapper .notification-badge {
+    position: absolute;
+    top: -5px;      /* move badge slightly above */
+    right: -5px;    /* move badge slightly to the right */
+    padding: 4px 7px;
+    border-radius: 50%;
+    background-color: #dc3545; /* Bootstrap danger red */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    line-height: 1;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* ===== Responsive ===== */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 1200px) and (min-width: 768px) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto; /* vertical scroll for medium devices */
+        font-size: 1rem; /* consistent sidebar font */
+    }
+
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
+/* Tablets & Below */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -100%;
+        width: 70%;
+        position: fixed;
+        overflow-y: auto; /* keep vertical scroll */
+    }
+
+    .active-sidebar {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    #sidebarToggle {
+        display: inline-block;
+        margin: 15px;
+    }
+}
+
+/* Small Devices (Mobiles) */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 80%;
+        overflow-y: auto;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+    .notification-card {
+        display: block;
+    }
+}

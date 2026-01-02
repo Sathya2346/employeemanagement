@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin || HourlyReoprt Card</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin/hourlyreport.css}">
+</head>
+<body>
+<div class="d-flex flex-column flex-lg-row min-vh-100">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 flex-shrink-0" id="sidebar" style="min-width: 230px;">
+            <!-- Close Button for Medium devices -->
+            <button class="btn btn-outline-light d-md-block d-lg-none mb-3" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <h4>EMS</h4>
+            <nav class="nav flex-column mt-3">
+                <a th:href="@{/admin/dashboard}" class="nav-link text-white"><i class="bi bi-house"></i>Overview</a>
+                <a th:href="@{/admin/profile}" class="nav-link text-white"><i class="bi bi-person"></i>Profile</a>
+                <a th:href="@{/admin/attendance}" class="nav-link text-white"><i class="bi bi-clock"></i>Attendance</a>
+                <a th:href="@{/admin/leave}" class="nav-link text-white"><i class="bi bi-calendar"></i>Leave</a>
+                <a th:href="@{/admin/hourlyReports}" class="nav-link active bg-secondary rounded"><i class="bi bi-list-check me-2"></i>Hourly Reports</a>
+                <a th:href="@{/admin/adminNotifications}" class="nav-link text-white"><i class="bi bi-bell"></i>Notifications</a>
+                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right"></i>Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content" class="flex-grow-1 main-content">
+            <!-- Toggle Button -->
+                    <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
+                <div class="container-fluid d-lg-flex justify-content-between align-items-center">
+                  <span class="fw-semibold">
+                    Employee Hourly Reports<br>
+                    <small class="text-muted">Manage employee hourly activity</small>
+                  </span>
+                    <div class="d-flex align-items-center justify-content-end">
+                        <img th:src="@{/images/img2.png}" class="avatar" alt="profilePic">
+                    </div>
+                </div>
+            </nav>
+
+      <!-- ===== Page Content ===== -->
+      <div class="container py-5">
+        <!-- Search bar -->
+        <div class="input-group mb-4 mx-auto">
+          <input id="searchInput" type="text" class="form-control" placeholder="Search employee...">
+          <span class="btn searchBar"><i class="bi bi-search"></i></span>
+        </div>
+
+        <!-- Employee Cards -->
+        <div class="row" id="employeeCards">
+          <div class="col-12 col-sm-6 col-lg-4 mb-4" th:each="emp : ${employees}"
+            th:data-name="${emp.firstname} + ' ' + ${emp.lastname}">
+            <div class="card shadow-sm border-0 hover-card">
+              <div class="card-body text-center">
+                <h5 th:text="${emp.firstname + ' ' + emp.lastname}"></h5>
+                <p th:text="${emp.email}"></p>
+                <button class="btn btn-download"
+                  th:onclick="'window.location.href=\'/admin/hourlyReports/' + ${emp.id} + '\';'">
+                  View Hourly Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== JS Section ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Inline JS -->
+  <script th:inline="javascript">
+        const unreadUrl = /*[[@{/notification/unread/count}]]*/ '/notification/unread/count';
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const badge = document.getElementById("adminUnreadBadge");
+            if (!badge) {
+                console.error("❌ adminUnreadBadge not found in DOM");
+                return;
+            }
+
+            async function fetchAdminUnreadCount() {
+                try {
+                    const res = await fetch(unreadUrl);
+                    if (!res.ok) throw new Error("Failed to fetch admin unread count");
+
+                    const data = await res.json();
+                    const count = data.count;
+
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? "inline-block" : "none";
+                } catch (err) {
+                    console.error("Error fetching admin unread notifications:", err);
+                }
+            }
+
+            // Initial fetch
+            fetchAdminUnreadCount();
+
+            // Refresh every 1 minute (no need for 1 sec)
+            setInterval(fetchAdminUnreadCount, 60000);
+        });
+  </script>
+  <!-- Sidebar Toggle -->
+  <script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const closeSidebar = document.getElementById('closeSidebar');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.add('active-sidebar');
+    });
+
+    closeSidebar.addEventListener('click', () => {
+      sidebar.classList.remove('active-sidebar');
+    });
+  </script>
+
+  <!-- Employee Search -->
+  <script>
+    document.getElementById("searchInput").addEventListener("keyup", function () {
+      const query = this.value.toLowerCase();
+      document.querySelectorAll("#employeeCards [data-name]").forEach(card => {
+        card.style.display = card.dataset.name.toLowerCase().includes(query) ? "" : "none";
+      });
+    });
+  </script>
+
+  <!-- External JS -->
+  <script th:src="@{/js/dashboard.js}"></script>
+</body>
+
+</html>

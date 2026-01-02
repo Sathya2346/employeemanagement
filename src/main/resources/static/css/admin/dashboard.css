@@ -1,0 +1,198 @@
+/* src\main\resources\static\css\admin\dashboard.css */
+/* ===== Global ===== */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f9f8;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ===== Sidebar (Updated same as first file) ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background-color: #23d2aa; /* original color */
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1050;
+    padding: 20px 20px;
+}
+
+.sidebar h4 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 3px 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-size: 1rem; /* fixed font size for all devices */
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: #50d2b3; /* original hover color */
+    transform: translateX(5px);
+}
+
+.avatar{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.searchBar:hover {
+    background-color: white;
+    border: 1px solid #FF7423;
+    color: #FF7423;
+}
+.btn-download {
+    background-color: #23d2aa;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-download:hover {
+    background-color: #50d2b3;
+    transform: translateY(-2px);
+}
+/* ===== Main Content ===== */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    background: #ffffff;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+/* Navbar */
+.navbar-custom {
+    background-color: white;
+    border-bottom: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px 10px;
+}
+
+/* ==== Notification ==== */
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-wrapper .notification-badge {
+    position: absolute;
+    top: -5px;      /* move badge slightly above */
+    right: -5px;    /* move badge slightly to the right */
+    padding: 4px 7px;
+    border-radius: 50%;
+    background-color: #dc3545; /* Bootstrap danger red */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    line-height: 1;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* ===== Cards ===== */
+.card-stats {
+    border-radius: 8px;
+    background: white;
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-stats h3 {
+    margin: 0;
+    font-weight: bold;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ===== Responsive ===== */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 1200px) and (min-width: 768px) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto; /* vertical scroll for medium devices */
+        font-size: 1rem; /* consistent sidebar font */
+    }
+
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
+/* Tablets & Below */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -100%;
+        width: 70%;
+        position: fixed;
+        overflow-y: auto; /* keep vertical scroll */
+    }
+
+    .active-sidebar {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    #sidebarToggle {
+        display: inline-block;
+        margin: 15px;
+    }
+}
+
+/* Small Devices (Mobiles) */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 80%;
+        overflow-y: auto;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+}

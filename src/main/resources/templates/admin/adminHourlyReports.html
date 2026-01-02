@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Admin || Hourly Reports</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- ✅ Add data attributes for JS -->
+    <h4 id="employeeInfo"
+        th:data-name="${employee.username}"
+        th:data-id="${employee.id}">
+      Hourly Reports - <span th:text="${employee.username}">John Doe</span>
+      <small class="text-muted ms-2">(ID: <span th:text="${employee.id}">101</span>)</small>
+    </h4>
+
+    <!-- ✅ Button disabled if no data -->
+    <button class="btn btn-danger" id="downloadPdfBtn"
+            th:disabled="${#lists.isEmpty(reports)}">
+      <i class="bi bi-download"></i> Download PDF
+    </button>
+  </div>
+
+  <!-- ✅ Table -->
+  <div class="table-responsive shadow-sm">
+    <table class="table table-bordered table-hover" id="reportTable">
+      <thead class="table-success">
+        <tr>
+          <th>Time Slot</th>
+          <th>Task Description</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="report : ${reports}">
+          <td th:text="${report.timeSlot}">10:00 - 11:00</td>
+          <td th:text="${report.taskDescription}">Developed Employee Module</td>
+          <td th:text="${report.status}">In Progress</td>
+          <td th:text="${#temporals.format(report.createdAt, 'yyyy-MM-dd HH:mm')}">2025-11-03 14:00</td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(reports)}">
+          <td colspan="4" class="text-center text-muted">No reports found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ✅ Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ Make sure these load AFTER bootstrap -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const downloadBtn = document.getElementById("downloadPdfBtn");
+  const table = document.getElementById("reportTable");
+  const empEl = document.getElementById("employeeInfo");
+
+  // If button is disabled, don't attach event
+  if (!downloadBtn || downloadBtn.disabled) {
+    console.warn("Download disabled — no data available.");
+    return;
+  }
+
+  // ✅ Read employee info from data attributes
+  const employeeName = empEl.dataset.name || "Unknown";
+  const employeeId = empEl.dataset.id || "N/A";
+
+  downloadBtn.addEventListener("click", async () => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+
+      pdf.setFontSize(16);
+      pdf.text("Hourly Work Report", pageWidth / 2, 15, { align: "center" });
+
+      pdf.setFontSize(12);
+      pdf.text(`Employee: ${employeeName} (ID: ${employeeId})`, 15, 25);
+
+      // ✅ Capture table as image
+      const canvas = await html2canvas(table, { scale: 1.3 });
+      const imgData = canvas.toDataURL("image/png");
+
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 10, 35, imgWidth, imgHeight);
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${new Date().toLocaleString()}`, 10, pdf.internal.pageSize.height - 10);
+
+      // ✅ Save PDF
+      pdf.save(`Hourly_Report_${employeeName}_${employeeId}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Something went wrong while generating the PDF. Check the console for details.");
+    }
+  });
+});
+</script>
+
+</body>
+</html>
