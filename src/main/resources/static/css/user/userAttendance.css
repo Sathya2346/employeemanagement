@@ -1,0 +1,416 @@
+/* ===== Global ===== */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f9f8;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ===== Sidebar (Updated same as first file) ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background-color: #23d2aa;
+    /* original color */
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1050;
+    padding: 20px 20px;
+}
+
+.sidebar h4 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 3px 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    /* fixed font size for all devices */
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: #50d2b3;
+    /* original hover color */
+    transform: translateX(5px);
+}
+
+/* ===== Main Content ===== */
+.main-content {
+    margin-left: 260px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+/* ===== Navbar ===== */
+.navbar-custom {
+    background-color: white;
+    border-bottom: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.navbar-left h4>a {
+    font-weight: 600;
+    margin: 0;
+    color: #000;
+}
+
+.navbar-left h4 span>a {
+    color: #999;
+    margin-left: 10px;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ===== Buttons ===== */
+.btn-month {
+    background-color: #1abc9c;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-month:hover {
+    background-color: #17a589;
+}
+
+.btn-download {
+    background-color: #FF7423;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-download:hover {
+    background-color: #d94f21;
+}
+
+/* ===== Info Cards ===== */
+.info-cards {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-card {
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-green {
+    background-color: #d2f8d2;
+}
+
+.card-blue {
+    background-color: #cce5ff;
+}
+
+.card-yellow {
+    background-color: #fff3cd;
+}
+
+.card-purple {
+    background-color: #e0d4f7;
+}
+
+.info-card img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+}
+
+.info-card h6 {
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* ===== Stats Row ===== */
+.stats-row {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background-color: #f3f4f6;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Calendar ===== */
+.calendar {
+    background-color: #e9faff;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.calendar-header h6 {
+    font-weight: 600;
+    color: #007bff;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.calendar-header button {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.calendar table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.calendar th {
+    color: #333;
+    font-weight: 600;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #eee;
+}
+
+.calendar td {
+    padding: 5px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.calendar td:hover {
+    background-color: #cce5ff;
+    cursor: pointer;
+}
+
+.calendar td.active {
+    background-color: #1abc9c;
+    color: white;
+    font-weight: 600;
+}
+
+/* ===== Table ===== */
+.table-container {
+    margin-top: 25px;
+    background-color: #eaf9f0;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+th,
+td {
+    padding: 12px;
+}
+
+th {
+    background-color: #d6f5e3;
+    color: #000;
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: #f8f9fa;
+}
+
+.status-present {
+    color: #1abc9c;
+    font-weight: 600;
+}
+
+.edit-btn {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.edit-btn:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* ===== Responsive ===== */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 1200px) and (min-width: 768px) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto;
+        /* vertical scroll for medium devices */
+        font-size: 1rem;
+        /* consistent sidebar font */
+    }
+
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
+/* Tablets & Below */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -100%;
+        width: 70%;
+        position: fixed;
+        overflow-y: auto;
+        /* keep vertical scroll */
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    #sidebarToggle {
+        display: inline-block;
+        margin: 15px;
+    }
+}
+
+/* Small Devices (Mobiles) */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 80%;
+        overflow-y: auto;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+}
+
+
+
+/* ===== Calendar & Download Modals ===== */
+.modal-content {
+    background-color: #f5f9f8;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    animation: fadeInScale 0.3s ease;
+}
+
+.modal-header .btn-close {
+    background-color: #23d2aa;
+    opacity: 1;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.modal-header .btn-close:hover {
+    background-color: #1abc9c;
+}
+
+#calendarModalLabel,
+#downloadModalLabel {
+    color: #23d2aa;
+    font-weight: 700;
+}
+
+#selectedDates,
+#dateRangeText {
+    color: #FF7423;
+    font-weight: 600;
+}
+
+#downloadContent h6 {
+    color: #1abc9c;
+}
+
+.modal-footer .btn-month {
+    background-color: #1abc9c;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: 0.3s;
+}
+
+.modal-footer .btn-month:hover {
+    background-color: #17a589;
+}
+
+/* Center modal popup animation */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
