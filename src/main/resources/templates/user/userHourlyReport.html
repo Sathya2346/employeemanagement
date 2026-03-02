@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>User || Hourly Report</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/user/userDashboard.css}">
+</head>
+<body>
+    <div class="d-flex flex-column flex-lg-row min-vh-100">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 flex-shrink-0" id="sidebar" style="min-width: 230px;">
+            <!-- Close Button for Medium devices -->
+            <button class="btn btn-outline-light d-md-block d-lg-none mb-3" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <h4>EMS</h4>
+            <nav class="nav flex-column mt-3">
+                <a th:href="@{/user/userDashboard/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-house me-2"></i>Overview</a>
+                <a th:href="@{/user/userProfile/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-person me-2"></i>Profile</a>
+                <a th:href="@{/user/userAttendance/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Attendance</a>
+                <a th:href="@{/leave/userLeave/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-calendar me-2"></i>Leave</a>
+                <a th:href="@{/user/hourlyReport/{id}(id=${employee.id})}" class="nav-link active bg-secondary rounded"><i class="bi bi-clock-history me-2"></i>Hourly Report</a>
+                <a th:href="@{/user/notification/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-bell me-2"></i>Notification</a>
+                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+            </nav>
+        </div>
+
+  <!-- Main Content -->
+  <div id="content" class="flex-grow-1 main-content">
+    <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <div class="container mt-4">
+      <h3 class="text-center mb-4">Hourly Work Report</h3>
+
+      <form id="hourlyForm">
+        <div class="card shadow-sm p-4">
+          <div class="table-responsive">
+            <table class="table align-middle" id="reportTable">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center">Time Slot</th>
+                  <th>Task Description</th>
+                  <th>Status</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center">
+                    <input type="text" class="form-control time-slot" placeholder="e.g. 10:00 - 11:00">
+                  </td>
+                  <td>
+                    <textarea class="form-control task-desc" rows="2" placeholder="Enter task details..."></textarea>
+                  </td>
+                  <td>
+                    <select class="form-select status">
+                      <option>In Progress</option>
+                      <option>Completed</option>
+                      <option>Pending Review</option>
+                    </select>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-success btn-sm add-row"><i class="bi bi-plus-lg"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary px-5">Submit All Reports</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Dynamic Row Addition
+  const tableBody = document.querySelector("#reportTable tbody");
+
+  tableBody.addEventListener("click", (e) => {
+    if (e.target.closest(".add-row")) {
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td class="text-center">
+          <input type="text" class="form-control time-slot" placeholder="e.g. 11:00 - 12:00">
+        </td>
+        <td>
+          <textarea class="form-control task-desc" rows="2" placeholder="Enter task details..."></textarea>
+        </td>
+        <td>
+          <select class="form-select status">
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Pending Review</option>
+          </select>
+        </td>
+        <td class="text-center">
+          <button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>
+        </td>
+      `;
+      tableBody.appendChild(newRow);
+    }
+
+    if (e.target.closest(".remove-row")) {
+      e.target.closest("tr").remove();
+    }
+  });
+
+  // Form submission
+  document.getElementById("hourlyForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const employeeId = "[[${employee.id}]]";
+    const employeeName = "[[${employee.firstname}]] [[${employee.lastname}]]";
+    const rows = document.querySelectorAll("tbody tr");
+    const reports = [];
+
+    rows.forEach((row) => {
+      const timeSlot = row.querySelector(".time-slot").value.trim();
+      const task = row.querySelector(".task-desc").value.trim();
+      const status = row.querySelector(".status").value;
+      if (timeSlot && task) {
+        reports.push({ employeeId, employeeName, timeSlot, taskDescription: task, status });
+      }
+    });
+
+    if (reports.length === 0) {
+      alert("Please enter at least one task before submitting.");
+      return;
+    }
+
+    const res = await fetch("/user/submitHourlyReports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reports)
+    });
+
+    if (res.ok) {
+      alert("Hourly report submitted successfully!");
+      location.reload();
+    } else {
+      alert("Error submitting reports.");
+    }
+  });
+
+  // Sidebar toggle
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const closeSidebar = document.getElementById('closeSidebar');
+
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.add('active-sidebar');
+  });
+
+  closeSidebar.addEventListener('click', () => {
+    sidebar.classList.remove('active-sidebar');
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+/* ===== Global ===== */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f9f8;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ===== Sidebar (Updated same as first file) ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    background-color: #23d2aa; /* original color */
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1050;
+    padding: 20px 20px;
+}
+
+.sidebar h4 {
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.sidebar .nav-link {
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 3px 0;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    font-size: 1rem; /* fixed font size for all devices */
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: #50d2b3; /* original hover color */
+    transform: translateX(5px);
+}
+
+.searchBar {
+    background-color: #FF7423; /* original color */
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.searchBar:hover {
+    background-color: white;
+    border: 1px solid #FF7423;
+    color: #FF7423;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    background: #ffffff;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+/* Payroll Section Start */
+.btn-month {
+    background-color: #23d2aa;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-month:hover {
+    background-color: #17a589;
+    transform: scale(1.05);
+}
+
+.btn-download {
+    background-color: #FF7423;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-download:hover {
+    background-color: #fd8c4b;
+    transform: scale(1.05);
+}
+
+/* ---------- Table Styles ---------- */
+.table-container {
+    background-color: #c9f3e5;
+    border-radius: 10px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    animation: fadeIn 1s ease;
+}
+
+.table thead {
+    background-color: #f9fefb;
+}
+
+.table th{
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+    border-color: #f9fefb;
+}
+.table td {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+    border-color: #c9f3e5;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f0fff7;
+    transition: all 0.8s;
+    transform: scale(1.01);
+}
+
+/* ---------- Summary & Button ---------- */
+.summary-text {
+    font-weight: 600;
+    text-align: right;
+    margin-top: 10px;
+    font-size: 15px;
+}
+
+.submit-btn {
+    background-color: #FF7423;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: 0.3s ease;
+    margin-top: 15px;
+}
+
+.submit-btn:hover {
+    background-color: #ff550a;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(255, 107, 44, 0.4);
+}
+
+/* ---------- Animation ---------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Payroll Section End */
+
+/* ===== Responsive ===== */
+
+/* Medium Devices (Tablets) */
+@media (max-width: 1200px) and (min-width: 768px) {
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto; /* vertical scroll for medium devices */
+        font-size: 1rem; /* consistent sidebar font */
+    }
+
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
+@media (max-width: 992px) {
+    .sidebar {
+        left: -100%;
+        width: 70%;
+        position: fixed;
+        overflow-y: auto; /* keep vertical scroll */
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    #sidebarToggle {
+        display: inline-block;
+        margin: 15px;
+    }
+
+    /* Stack main flex container vertically */
+    .d-flex.flex-column.flex-lg-row {
+        flex-direction: column;
+    }
+
+    /* Payroll Section Start */
+    .btn-month,
+    .btn-download {
+        width: 48%;
+    }
+}
+/* Small Devices (Mobiles) */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 80%;
+        overflow-y: auto;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+}
+@media (max-width: 576px) {
+    h3 {
+    text-align: center;
+    }
+    
+    .btn-month,
+    .btn-download {
+        width: 100%;
+    }
+}
