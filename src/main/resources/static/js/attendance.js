@@ -1,4 +1,18 @@
 // src/main/resources/static/js/attendance.js
+function sideNav() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const closeSidebar = document.getElementById('closeSidebar');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.add('active-sidebar');
+    });
+
+    closeSidebar.addEventListener('click', () => {
+        sidebar.classList.remove('active-sidebar');
+    });
+}
+sideNav();
 document.addEventListener("DOMContentLoaded", async () => {
     // ==============================
     // ✅ IST HELPERS
