@@ -1,0 +1,26 @@
+# Maven build artifacts
+target/
+!target/product-management-1.0.0.jar
+
+# Git metadata
+.git/
+.gitignore
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets – never bake into image
+*.env
+application-secret.properties
+
+# Test reports
+surefire-reports/
