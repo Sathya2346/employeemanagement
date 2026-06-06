@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: employeemanagement
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /actuator/health
+
+    envVars:
+      # ── Database ──────────────────────────────────────────────
+      # Set these in the Render dashboard → Environment tab:
+      #   DB_URL      = jdbc:mysql://<host>:<port>/<dbname>?useSSL=true&serverTimezone=Asia/Kolkata
+      #   DB_USERNAME = <your db user>
+      #   DB_PASSWORD = <your db password>
+      - key: DB_URL
+        sync: false          # must be set manually in Render dashboard
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # ── Mail ─────────────────────────────────────────────────
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+      # ── Spring Boot tuning ───────────────────────────────────
+      - key: JAVA_OPTS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+
+      # Render injects PORT automatically – no need to set it
