@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin || Settings</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #23d2aa;
+            --primary-hover: #1abc9c;
+            --primary-gradient: linear-gradient(135deg, #23d2aa 0%, #1abc9c 100%);
+            --bg-light: #f5f9f8;
+            --text-main: #2c3e50;
+            --sidebar-bg: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text-main);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background-color: #23d2aa;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 1050;
+            padding: 15px 15px;
+            overflow-y: auto;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+        .sidebar::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+        }
+        .sidebar h4 {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .sidebar .nav-link {
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #50d2b3;
+            transform: translateX(5px);
+            color: white;
+        }
+
+        /* Content Area */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .navbar {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Premium Card */
+        .settings-card {
+            background: white;
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+
+        .card-header-gradient {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Tabs styling */
+        .nav-tabs {
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #718096;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            transition: all 0.2s;
+        }
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-hover);
+            border-bottom: 3px solid #cbd5e1;
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--primary-hover);
+            background: transparent;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        /* Form elements */
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(35, 210, 170, 0.15);
+        }
+        textarea.form-control {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Placeholder badge info */
+        .placeholder-badge {
+            font-size: 0.75rem;
+            background-color: #edf2f7;
+            color: #4a5568;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            font-family: monospace;
+        }
+
+        .btn-save {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.8rem 2.5rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(35, 210, 170, 0.25);
+            color: white;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Toast / Alert styling */
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 992px) {
+            .sidebar {
+                left: -100%;
+                width: 70%;
+                position: fixed;
+                overflow-y: auto;
+            }
+            .sidebar.active-sidebar {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex flex-column flex-lg-row min-vh-100">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 flex-shrink-0" id="sidebar" style="min-width: 230px;">
+            <button class="btn btn-outline-light d-lg-none mb-3" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <h4>EMS</h4>
+            <nav class="nav flex-column mt-3">
+                <a th:href="@{/admin/dashboard}" class="nav-link text-white"><i class="bi bi-house me-2"></i>Overview</a>
+                <a th:href="@{/admin/addEmployee}" class="nav-link text-white"><i class="bi bi-person-plus me-2"></i>Add Employee</a>
+                <a th:href="@{/admin/profile}" class="nav-link text-white"><i class="bi bi-person me-2"></i>Employee List</a>
+                <a th:href="@{/admin/onboarding/pending}" class="nav-link text-white"><i class="bi bi-clipboard-check me-2"></i>Pending Onboarding</a>
+                <a th:href="@{/admin/attendance}" class="nav-link text-white"><i class="bi bi-clock me-2"></i>Attendance</a>
+                <a th:href="@{/admin/leave}" class="nav-link text-white"><i class="bi bi-calendar me-2"></i>Leave</a>
+                <a th:href="@{/admin/hourlyReports}" class="nav-link text-white"><i class="bi bi-list-check me-2"></i>Hourly Reports</a>
+                <a th:href="@{/admin/adminNotifications}" class="nav-link text-white"><i class="bi bi-bell me-2"></i>Notifications
+                    <span id="adminUnreadBadge" class="badge bg-danger ms-1" th:style="${adminUnreadCount > 0 ? 'display: inline-block;' : 'display: none;'}" th:text="${adminUnreadCount}"></span>
+                </a>
+                <a th:href="@{/admin/settings}" class="nav-link active bg-secondary rounded"><i class="bi bi-gear me-2"></i>Settings</a>
+                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content" class="flex-grow-1 main-content">
+            <!-- Toggle Button for Mobile -->
+            <button class="btn btn-outline-secondary d-lg-none mb-3" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3 rounded-4 mb-4">
+                <div class="container-fluid d-sm-flex align-items-center justify-content-between">
+                    <span class="fw-semibold">System Settings<br>
+                        <small class="text-muted">Configure default leave balances and email templates</small>
+                    </span>
+                    <div class="d-flex justify-content-evenly align-items-center my-2 my-sm-0">
+                        <img th:src="@{/images/img2.png}" class="avatar" alt="user">
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Settings Card -->
+            <div class="card settings-card">
+                <div class="card-header-gradient">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Configuration Console</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/admin/settings/save}" th:object="${settings}" method="post">
+                        <!-- Navigation Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="leaves-tab" data-bs-toggle="tab" data-bs-target="#leaves" type="button" role="tab" aria-controls="leaves" aria-selected="true">
+                                    <i class="bi bi-calendar-range me-2"></i>Leave Configurations
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="emails-tab" data-bs-toggle="tab" data-bs-target="#emails" type="button" role="tab" aria-controls="emails" aria-selected="false">
+                                    <i class="bi bi-envelope-open me-2"></i>Email Templates
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="shifts-tab" data-bs-toggle="tab" data-bs-target="#shifts" type="button" role="tab" aria-controls="shifts" aria-selected="false">
+                                    <i class="bi bi-clock me-2"></i>Shift Configurations
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="settingsTabsContent">
+                            <!-- 1. LEAVE CONFIGURATION -->
+                            <div class="tab-pane fade show active" id="leaves" role="tabpanel" aria-labelledby="leaves-tab">
+                                <div class="row g-4">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="initialPaidLeave" class="form-label">Default Paid Leave</label>
+                                            <input type="number" class="form-control" th:field="*{initialPaidLeave}" id="initialPaidLeave" min="0" required>
+                                            <small class="text-muted">Starting paid leaves for new employees.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="initialSickLeave" class="form-label">Default Sick Leave</label>
+                                            <input type="number" class="form-control" th:field="*{initialSickLeave}" id="initialSickLeave" min="0" required>
+                                            <small class="text-muted">Starting sick leaves for new employees.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="initialCasualLeave" class="form-label">Default Casual Leave</label>
+                                            <input type="number" class="form-control" th:field="*{initialCasualLeave}" id="initialCasualLeave" min="0" required>
+                                            <small class="text-muted">Starting casual leaves for new employees.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. EMAIL TEMPLATES -->
+                            <div class="tab-pane fade" id="emails" role="tabpanel" aria-labelledby="emails-tab">
+                                <!-- Welcome Email Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-card-heading me-2"></i>Welcome Email Template</h6>
+                                    <div class="mb-3">
+                                        <label for="welcomeEmailSubject" class="form-label">Welcome Email Subject</label>
+                                        <input type="text" class="form-control" th:field="*{welcomeEmailSubject}" id="welcomeEmailSubject" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="welcomeEmailBody" class="form-label">Welcome Email Body</label>
+                                        <textarea class="form-control" th:field="*{welcomeEmailBody}" id="welcomeEmailBody" rows="6" required></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{username}</span>
+                                            <span class="placeholder-badge">{email}</span>
+                                            <span class="placeholder-badge">{password}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Onboarding Receipt Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-earmark-check me-2"></i>Onboarding Submission Receipt Email</h6>
+                                    <div class="mb-3">
+                                        <label for="receiptEmailSubject" class="form-label">Receipt Email Subject</label>
+                                        <input type="text" class="form-control" th:field="*{receiptEmailSubject}" id="receiptEmailSubject" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="receiptEmailBody" class="form-label">Receipt Email Body</label>
+                                        <textarea class="form-control" th:field="*{receiptEmailBody}" id="receiptEmailBody" rows="5" required></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Onboarding Rejection Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-exclamation-triangle-fill me-2"></i>Changes Requested (Rejection) Email</h6>
+                                    <div class="mb-3">
+                                        <label for="rejectionEmailSubject" class="form-label">Changes Requested Subject</label>
+                                        <input type="text" class="form-control" th:field="*{rejectionEmailSubject}" id="rejectionEmailSubject" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="rejectionEmailBody" class="form-label">Changes Requested Body</label>
+                                        <textarea class="form-control" th:field="*{rejectionEmailBody}" id="rejectionEmailBody" rows="6" required></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                            <span class="placeholder-badge">{rejections}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Onboarding Approval Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-patch-check-fill me-2"></i>Onboarding Fully Approved Email</h6>
+                                    <div class="mb-3">
+                                        <label for="approvalEmailSubject" class="form-label">Approval Email Subject</label>
+                                        <input type="text" class="form-control" th:field="*{approvalEmailSubject}" id="approvalEmailSubject" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="approvalEmailBody" class="form-label">Approval Email Body</label>
+                                        <textarea class="form-control" th:field="*{approvalEmailBody}" id="approvalEmailBody" rows="5" required></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. SHIFT CONFIGURATIONS -->
+                            <div class="tab-pane fade" id="shifts" role="tabpanel" aria-labelledby="shifts-tab">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-clock me-2"></i>Shift Timings</h6>
+                                    <button type="button" class="btn btn-sm btn-success px-3" data-bs-toggle="modal" data-bs-target="#addShiftModal">
+                                        <i class="bi bi-plus-lg me-1"></i>Add New Shift
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle border rounded-3 overflow-hidden">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Shift Name</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="shift, iter : ${shiftTimings}">
+                                                <td th:text="${iter.count}">1</td>
+                                                <td class="fw-semibold" th:text="${shift.name}">Morning (9:00 AM - 6:00 PM)</td>
+                                                <td class="text-end">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                                            th:data-id="${shift.id}" 
+                                                            th:data-name="${shift.name}" 
+                                                            onclick="openEditModal(this)">
+                                                        <i class="bi bi-pencil-fill me-1"></i>Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                            th:data-id="${shift.id}" 
+                                                            th:data-name="${shift.name}" 
+                                                            onclick="openDeleteModal(this)">
+                                                        <i class="bi bi-trash-fill me-1"></i>Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr th:if="${#lists.isEmpty(shiftTimings)}">
+                                                <td colspan="3" class="text-center text-muted py-3">No shift timings configured.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-save">
+                                <i class="bi bi-save me-2"></i>Save Configurations
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Shift Modal -->
+    <div class="modal fade" id="addShiftModal" tabindex="-1" aria-labelledby="addShiftModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                <form th:action="@{/admin/settings/shifts/save}" th:object="${newShift}" method="post">
+                    <div class="modal-header border-0 bg-light py-3">
+                        <h5 class="modal-title fw-bold" id="addShiftModalLabel"><i class="bi bi-plus-circle-fill me-2 text-success"></i>Add Shift Timing</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4 py-3">
+                        <div class="mb-3">
+                            <label for="shiftName" class="form-label">Shift Name / Work Hours*</label>
+                            <input type="text" class="form-control" th:field="*{name}" id="shiftName" placeholder="e.g. Morning (9:00 AM - 6:00 PM)" required>
+                            <small class="text-muted">Enter the name of the shift and the work hours.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light py-2">
+                        <button type="button" class="btn btn-secondary px-3" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success px-4" style="border-radius: 8px;">Add Shift</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Shift Modal -->
+    <div class="modal fade" id="editShiftModal" tabindex="-1" aria-labelledby="editShiftModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                <form id="editShiftForm" method="post">
+                    <div class="modal-header border-0 bg-light py-3">
+                        <h5 class="modal-title fw-bold" id="editShiftModalLabel"><i class="bi bi-pencil-square me-2 text-primary"></i>Edit Shift Timing</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4 py-3">
+                        <div class="mb-3">
+                            <label for="editShiftName" class="form-label">Shift Name / Work Hours*</label>
+                            <input type="text" class="form-control" name="name" id="editShiftName" required>
+                            <small class="text-muted">Modify the name of the shift and the work hours.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light py-2">
+                        <button type="button" class="btn btn-secondary px-3" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius: 8px;">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Shift Modal -->
+    <div class="modal fade" id="deleteShiftModal" tabindex="-1" aria-labelledby="deleteShiftModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px;">
+                <form id="deleteShiftForm" method="post">
+                    <div class="modal-header border-0 bg-light py-3">
+                        <h5 class="modal-title fw-bold text-danger" id="deleteShiftModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Shift Timing</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center py-4 px-4">
+                        <i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-1 fw-bold fs-5">Are you sure you want to delete this shift?</p>
+                        <p class="text-muted small" id="deleteShiftText"></p>
+                        <p class="text-danger small fw-semibold"><i class="bi bi-info-circle me-1"></i> Employees currently assigned to this shift will need to be re-assigned.</p>
+                    </div>
+                    <div class="modal-footer border-0 bg-light py-2">
+                        <button type="button" class="btn btn-secondary px-3" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4" style="border-radius: 8px;">Delete Shift</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('active-sidebar');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active-sidebar');
+        });
+
+        // Tab visibility logic for Save button
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabs = document.querySelectorAll('#settingsTabs button');
+            const saveBtn = document.querySelector('.btn-save');
+            if (saveBtn) {
+                const saveBtnContainer = saveBtn.parentElement;
+                tabs.forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', function (event) {
+                        if (event.target.id === 'shifts-tab') {
+                            saveBtnContainer.style.setProperty('display', 'none', 'important');
+                        } else {
+                            saveBtnContainer.style.setProperty('display', 'flex', 'important');
+                        }
+                    });
+                });
+            }
+        });
+
+        function openEditModal(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            
+            const form = document.getElementById('editShiftForm');
+            form.setAttribute('action', '/admin/settings/shifts/edit/' + id);
+            
+            document.getElementById('editShiftName').value = name;
+            
+            const editModal = new bootstrap.Modal(document.getElementById('editShiftModal'));
+            editModal.show();
+        }
+
+        function openDeleteModal(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            
+            const form = document.getElementById('deleteShiftForm');
+            form.setAttribute('action', '/admin/settings/shifts/delete/' + id);
+            
+            document.getElementById('deleteShiftText').innerText = '"' + name + '"';
+            
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteShiftModal'));
+            deleteModal.show();
+        }
+    </script>
+</body>
+</html>

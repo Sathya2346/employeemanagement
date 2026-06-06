@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Onboarding Portal</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #23d2aa;
+            --primary-hover: #50d2b3;
+            --primary-gradient: linear-gradient(135deg, #23d2aa 0%, #1abc9c 100%);
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --text-main: #2c3e50;
+            --bg-light: #f5f9f8;
+        }
+
+        body { 
+            background-color: var(--bg-light); 
+            font-family: 'Segoe UI', sans-serif; 
+            color: var(--text-main);
+        }
+
+        .onboarding-card { 
+            border-radius: 20px; 
+            border: none; 
+            overflow: hidden; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+        }
+
+        .card-header { 
+            background: var(--primary-gradient); 
+            color: white; 
+            padding: 2rem; 
+            border: none;
+        }
+
+        .section-header { 
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem; 
+            color: #34495e; 
+            font-weight: 700; 
+            margin-top: 2.5rem;
+            font-size: 1.15rem;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+        }
+        .section-header i {
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+        }
+
+        .field-container { 
+            padding: 1.25rem; 
+            border-radius: 12px; 
+            margin-bottom: 1.25rem; 
+            transition: all 0.3s ease; 
+            position: relative; 
+            border: 1px solid #e2e8f0;
+            background-color: white;
+        }
+        
+        .status-pending { border-color: #e2e8f0; }
+        .status-approved { 
+            background-color: #f0fff4; 
+            border-color: #c6f6d5; 
+            pointer-events: none;
+            opacity: 0.85;
+        }
+        .status-rejected { background-color: #fff5f5; border-color: #fed7d7; }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.65rem 1rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(35, 210, 170, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .validation-suggestion {
+            font-size: 0.75rem;
+            margin-top: 0.4rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .suggestion-valid { color: var(--success-color); }
+        .suggestion-invalid { color: var(--error-color); }
+        .suggestion-pending { color: #94a3b8; }
+
+        .approved-check { color: var(--success-color); font-weight: 600; display: flex; align-items: center; }
+        .rejection-text { color: var(--error-color); font-size: 0.85rem; margin-top: 0.75rem; font-weight: 600; background: rgba(231, 76, 60, 0.05); padding: 0.5rem; border-radius: 8px; }
+
+        .btn-primary-custom {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 14px;
+            padding: 1rem 3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(58, 123, 213, 0.2);
+            color: white;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .file-input-wrapper:hover { border-color: #3a7bd5; background: #f1f5f9; }
+
+        @media (max-width: 768px) {
+            .card-header { padding: 1.5rem; }
+            .field-container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card onboarding-card shadow-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1 fw-bold text-white">Onboarding Journey</h2>
+                        <p class="mb-0 opacity-75 text-white">Complete your profile to join our elite team.</p>
+                    </div>
+                    <div class="text-end d-none d-md-block">
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2" th:text="${'ID: ' + employee.id}"></span>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    
+                    <!-- Status Alerts -->
+                    <div th:if="${overallStatus == 'FULLY_APPROVED'}" class="alert alert-success border-0 rounded-4 p-4 shadow-sm mb-5">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-patch-check-fill fs-1 me-4"></i>
+                            <div>
+                                <h4 class="alert-heading fw-bold mb-1">Verification Complete!</h4>
+                                <p class="mb-0">Welcome aboard! Your documents have been successfully verified.</p>
+                                <a th:href="@{'/user/userDashboard/' + ${employee.id}}" class="btn btn-success rounded-pill mt-3 px-4">Go to Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${overallStatus == 'DETAILS_SUBMITTED'}" class="alert alert-info border-0 rounded-4 p-4 shadow-sm mb-5">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border text-info me-4" role="status"></div>
+                            <div>
+                                <h4 class="alert-heading fw-bold mb-1">Under Review</h4>
+                                <p class="mb-0 text-muted">Our HR team is currently verifying your details. This usually takes 24-48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${overallStatus == 'CHANGES_REQUESTED'}" class="alert alert-warning border-0 rounded-4 p-4 shadow-sm mb-5">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-octagon-fill fs-1 me-4"></i>
+                            <div>
+                                <h4 class="alert-heading fw-bold mb-1">Attention Required</h4>
+                                <p class="mb-0">Some information needs your attention. Please check the highlighted sections below.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form th:action="@{/user/onboarding/submit}" th:object="${details}" method="post" enctype="multipart/form-data" id="onboardingForm" novalidate>
+                        <fieldset th:disabled="${overallStatus == 'DETAILS_SUBMITTED' || overallStatus == 'FULLY_APPROVED'}">
+                            
+                            <!-- 1. PERSONAL INFORMATION -->
+                            <div class="section-header"><i class="bi bi-person-badge fs-4"></i>1. Personal Profile</div>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.phoneStatus == 'APPROVED' ? 'status-approved' : (details.phoneStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Primary Phone</label>
+                                        <input type="tel" class="form-control" th:field="*{personalPhone}" id="personalPhone" maxlength="10" placeholder="10-digit number">
+                                        <div class="validation-suggestion suggestion-pending" id="phoneHint"><i class="bi bi-info-circle me-1"></i> 10 digits required</div>
+                                        <div th:if="${details.phoneStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
+                                        <div th:if="${details.phoneStatus == 'REJECTED'}" class="rejection-text"><i class="bi bi-x-circle me-1"></i> <span th:text="${details.phoneRejectionReason}"></span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.emergencyStatus == 'APPROVED' ? 'status-approved' : (details.emergencyStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Emergency Contact</label>
+                                        <input type="tel" class="form-control" th:field="*{personalEmergencyNumber}" id="personalEmergencyNumber" maxlength="10" placeholder="Alternative Number">
+                                        <div class="validation-suggestion suggestion-pending" id="emergencyHint"><i class="bi bi-info-circle me-1"></i> Different from primary</div>
+                                        <div th:if="${details.emergencyStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
+                                        <div th:if="${details.emergencyStatus == 'REJECTED'}" class="rejection-text"><i class="bi bi-x-circle me-1"></i> <span th:text="${details.emergencyRejectionReason}"></span></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.dobStatus == 'APPROVED' ? 'status-approved' : (details.dobStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Date of Birth</label>
+                                        <input type="date" class="form-control" th:field="*{personalDateOfBirth}" id="personalDateOfBirth">
+                                        <div class="validation-suggestion suggestion-pending" id="dobHint"><i class="bi bi-info-circle me-1"></i> Min 18 years old</div>
+                                        <div th:if="${details.dobStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
+                                        <div th:if="${details.dobStatus == 'REJECTED'}" class="rejection-text"><i class="bi bi-x-circle me-1"></i> <span th:text="${details.dobRejectionReason}"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.genderStatus == 'APPROVED' ? 'status-approved' : (details.genderStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Gender</label>
+                                        <select class="form-select" th:field="*{personalGender}" required>
+                                            <option value="">Select...</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <div th:if="${details.genderStatus == 'REJECTED'}" class="rejection-text">Invalid selection</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.maritalFieldStatus == 'APPROVED' ? 'status-approved' : (details.maritalFieldStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Marital Status</label>
+                                        <select class="form-select" th:field="*{personalMaritalStatus}" required>
+                                            <option value="">Select...</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Married">Married</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.languageStatus == 'APPROVED' ? 'status-approved' : (details.languageStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Languages</label>
+                                        <input type="text" class="form-control" th:field="*{personalLanguage}" placeholder="e.g. English, Hindi">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.bloodStatus == 'APPROVED' ? 'status-approved' : (details.bloodStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Blood Group</label>
+                                        <input type="text" class="form-control" th:field="*{personalBloodGroup}" placeholder="e.g. O+">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-8">
+                                    <div class="field-container" th:classappend="${details.addressStatus == 'APPROVED' ? 'status-approved' : (details.addressStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Full Address (As per Aadhar)</label>
+                                        <input type="text" class="form-control" th:field="*{personalAddress}" placeholder="Street, Building, Area">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.cityStatus == 'APPROVED' ? 'status-approved' : (details.cityStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">City</label>
+                                        <input type="text" class="form-control" th:field="*{personalCity}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. IDENTITY DOCUMENTS -->
+                            <div class="section-header"><i class="bi bi-shield-check fs-4"></i>2. Official Documents</div>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="field-container" th:classappend="${details.aadharStatus == 'APPROVED' ? 'status-approved' : (details.aadharStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Aadhar Number & Card Copy</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" th:field="*{aadharNumber}" id="aadharNumber" maxlength="12" placeholder="12-digit UID" style="max-width: 45%;">
+                                            <input type="file" name="aadharFile" class="form-control file-input" accept="image/*,application/pdf">
+                                        </div>
+                                        <div class="validation-suggestion suggestion-pending" id="aadharHint"><i class="bi bi-info-circle me-1"></i> Numbers only</div>
+                                        <div th:if="${details.aadharStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
+                                        <div th:if="${details.aadharStatus == 'REJECTED'}" class="rejection-text">Incorrect number/document</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-container" th:classappend="${details.panStatus == 'APPROVED' ? 'status-approved' : (details.panStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">PAN Number & Card Copy</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control text-uppercase" th:field="*{panNumber}" id="panNumber" maxlength="10" placeholder="ABCDE1234F" style="max-width: 45%;">
+                                            <input type="file" name="panFile" class="form-control file-input" accept="image/*,application/pdf">
+                                        </div>
+                                        <div class="validation-suggestion suggestion-pending" id="panHint"><i class="bi bi-info-circle me-1"></i> Standard format</div>
+                                        <div th:if="${details.panStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
+                                        <div th:if="${details.panStatus == 'REJECTED'}" class="rejection-text">Invalid PAN data</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. BANKING DETAILS -->
+                            <div class="section-header"><i class="bi bi-bank fs-4"></i>3. Financial Details</div>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.accountStatus == 'APPROVED' ? 'status-approved' : (details.accountStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Account Number</label>
+                                        <input type="text" class="form-control" th:field="*{accountNumber}" id="accountNumber" placeholder="Bank Account No.">
+                                        <div class="validation-suggestion suggestion-pending" id="accHint"><i class="bi bi-info-circle me-1"></i> 9-18 digits</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.bankNameStatus == 'APPROVED' ? 'status-approved' : (details.bankNameStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Bank Name</label>
+                                        <input type="text" class="form-control" th:field="*{bankName}" placeholder="Full Bank Name">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.ifscStatus == 'APPROVED' ? 'status-approved' : (details.ifscStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">IFSC Code</label>
+                                        <input type="text" class="form-control text-uppercase" th:field="*{ifscCode}" id="ifscCode" placeholder="SBIN0001234">
+                                        <div class="validation-suggestion suggestion-pending" id="ifscHint"><i class="bi bi-info-circle me-1"></i> 11 characters</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="field-container" th:classappend="${details.branchStatus == 'APPROVED' ? 'status-approved' : (details.branchStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Branch Name</label>
+                                        <input type="text" class="form-control" th:field="*{personalBranch}" placeholder="Branch Location">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. EDUCATION & PHOTOS -->
+                            <div class="section-header"><i class="bi bi-mortarboard fs-4"></i>4. Education & Documents</div>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="field-container text-center" th:classappend="${details.photoStatus == 'APPROVED' ? 'status-approved' : (details.photoStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Profile Photo</label>
+                                        <div class="file-input-wrapper mb-2">
+                                            <input type="file" name="photoFile" class="form-control file-input" accept="image/*">
+                                        </div>
+                                        <div th:if="${details.photoData != null}" class="mb-2">
+                                            <img th:src="'data:image/jpeg;base64,' + ${details.photoBase64}" class="img-thumbnail rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                                        </div>
+                                        <div th:if="${details.photoStatus == 'REJECTED'}" class="rejection-text">Photo Rejected</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.mark10thStatus == 'APPROVED' ? 'status-approved' : (details.mark10thStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">10th Marksheet (PDF)</label>
+                                        <div class="file-input-wrapper">
+                                            <input type="file" name="mark10thFile" class="form-control file-input" accept="application/pdf,image/*">
+                                        </div>
+                                        <div th:if="${details.mark10thStatus == 'REJECTED'}" class="rejection-text">Document Rejected</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container" th:classappend="${details.mark12thStatus == 'APPROVED' ? 'status-approved' : (details.mark12thStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">12th Marksheet (PDF)</label>
+                                        <div class="file-input-wrapper">
+                                            <input type="file" name="mark12thFile" class="form-control file-input" accept="application/pdf,image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-6">
+                                    <div class="field-container" th:classappend="${details.degreeNameStatus == 'APPROVED' ? 'status-approved' : (details.degreeNameStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">Highest Qualification</label>
+                                        <input type="text" class="form-control" th:field="*{degreeName}" placeholder="e.g. B.Tech Computer Science">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-container" th:classappend="${details.degreeInstStatus == 'APPROVED' ? 'status-approved' : (details.degreeInstStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="form-label small fw-bold">University/College</label>
+                                        <input type="text" class="form-control" th:field="*{degreeInstitution}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="mt-5 mb-3 text-secondary small fw-bold">Semester Marksheets (Sem 1 - 8)</h6>
+                            <div class="row g-3">
+                                <div th:each="i : ${#numbers.sequence(1, 8)}" class="col-6 col-md-3">
+                                    <div class="field-container p-2 small text-center" th:classappend="${details['sem' + i + 'Status'] == 'APPROVED' ? 'status-approved' : (details['sem' + i + 'Status'] == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="fw-bold mb-1" th:text="'Sem ' + ${i}"></label>
+                                        <input type="file" th:name="'sem' + ${i} + 'File'" class="form-control form-control-sm file-input">
+                                        <div th:if="${details['sem' + i + 'Status'] == 'REJECTED'}" class="text-danger x-small mt-1">X REJECTED</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-4">
+                                <div class="col-md-4">
+                                    <div class="field-container p-3 text-center" th:classappend="${details.transferCertStatus == 'APPROVED' ? 'status-approved' : (details.transferCertStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="small fw-bold">Transfer Cert.</label>
+                                        <input type="file" name="transferCertFile" class="form-control form-control-sm file-input">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container p-3 text-center" th:classappend="${details.provisionalCertStatus == 'APPROVED' ? 'status-approved' : (details.provisionalCertStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="small fw-bold">Provisional Cert.</label>
+                                        <input type="file" name="provisionalCertFile" class="form-control form-control-sm file-input">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-container p-3 text-center" th:classappend="${details.courseCompletionStatus == 'APPROVED' ? 'status-approved' : (details.courseCompletionStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
+                                        <label class="small fw-bold">Course Completion</label>
+                                        <input type="file" name="courseCompletionFile" class="form-control form-control-sm file-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-5" th:if="${overallStatus != 'DETAILS_SUBMITTED' && overallStatus != 'FULLY_APPROVED'}">
+                                <button type="submit" class="btn btn-primary-custom text-white shadow-lg btn-lg">
+                                    <i class="bi bi-rocket-takeoff me-2"></i> Submit Onboarding Details
+                                </button>
+                                <p class="text-muted small mt-3"><i class="bi bi-info-circle me-1"></i> Double check all information before submission.</p>
+                            </div>
+
+                        </fieldset>
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('onboardingForm');
+    
+    // Helper for real-time suggestions
+    function updateHint(hintId, isValid, validText, invalidText) {
+        const hint = document.getElementById(hintId);
+        if (!hint) return;
+        
+        if (isValid) {
+            hint.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${validText}`;
+            hint.className = 'validation-suggestion suggestion-valid';
+        } else {
+            hint.innerHTML = `<i class="bi bi-exclamation-circle-fill me-1"></i> ${invalidText}`;
+            hint.className = 'validation-suggestion suggestion-invalid';
+        }
+    }
+
+    // 1. Phone Validation
+    const phoneInput = document.getElementById('personalPhone');
+    const emergencyInput = document.getElementById('personalEmergencyNumber');
+    
+    if(phoneInput) {
+        const validatePhone = (input, hintId) => {
+            const val = input.value;
+            const isValid = /^\d{10}$/.test(val);
+            updateHint(hintId, isValid, 'Looks perfect!', 'Exactly 10 digits required');
+            return isValid;
+        };
+
+        phoneInput.addEventListener('input', () => {
+            validatePhone(phoneInput, 'phoneHint');
+            if(emergencyInput && emergencyInput.value) validateEmergency();
+        });
+
+        const validateEmergency = () => {
+            if(!emergencyInput) return;
+            const val = emergencyInput.value;
+            const isTen = /^\d{10}$/.test(val);
+            const isDifferent = val !== phoneInput.value;
+            const isValid = isTen && isDifferent;
+            
+            if (!isTen) updateHint('emergencyHint', false, '', 'Must be 10 digits');
+            else if (!isDifferent) updateHint('emergencyHint', false, '', 'Must be different from primary');
+            else updateHint('emergencyHint', true, 'Valid alternative contact', '');
+            return isValid;
+        };
+        if(emergencyInput) emergencyInput.addEventListener('input', validateEmergency);
+    }
+
+    // 2. DOB Validation
+    const dobInput = document.getElementById('personalDateOfBirth');
+    if(dobInput) {
+        dobInput.addEventListener('change', function() {
+            const dob = new Date(this.value);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            
+            updateHint('dobHint', age >= 18, 'Age verified (18+)', 'Must be at least 18 years old');
+        });
+    }
+
+    // 3. Aadhar Validation
+    const aadharInput = document.getElementById('aadharNumber');
+    if(aadharInput) {
+        aadharInput.addEventListener('input', function() {
+            const isValid = /^\d{12}$/.test(this.value);
+            updateHint('aadharHint', isValid, 'Aadhar format valid', '12-digit number required');
+        });
+    }
+
+    // 4. PAN Validation
+    const panInput = document.getElementById('panNumber');
+    if(panInput) {
+        panInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            const isValid = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(this.value);
+            updateHint('panHint', isValid, 'PAN format valid', 'e.g. ABCDE1234F');
+        });
+    }
+
+    // 5. Account Validation
+    const accInput = document.getElementById('accountNumber');
+    if(accInput) {
+        accInput.addEventListener('input', function() {
+            const isValid = /^\d{9,18}$/.test(this.value);
+            updateHint('accHint', isValid, 'Valid length', '9-18 digits required');
+        });
+    }
+
+    // 6. IFSC Validation
+    const ifscInput = document.getElementById('ifscCode');
+    if(ifscInput) {
+        ifscInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            const isValid = /^[A-Z]{4}0[A-Z0-9]{6}$/.test(this.value);
+            updateHint('ifscHint', isValid, 'IFSC format valid', 'e.g. SBIN0001234');
+        });
+    }
+
+    // 7. File Size Check
+    const fileInputs = document.querySelectorAll('.file-input');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.files[0] && this.files[0].size > 2 * 1024 * 1024) {
+                alert('File size exceeds 2MB limit. Please upload a smaller file.');
+                this.value = '';
+            }
+        });
+    });
+
+    // Form Submission UI
+    if(form) {
+        form.addEventListener('submit', function(e) {
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Scroll to first error
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            form.classList.add('was-validated');
+        });
+    }
+});
+</script>
+</body>
+</html>
