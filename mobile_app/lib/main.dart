@@ -39,7 +39,7 @@ class EmsMobileApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
-        '/webview': (context) => const WebViewScreen(url: 'http://192.168.1.39:8080'), // Point to your computer's local IP address
+        '/webview': (context) => const WebViewScreen(url: 'https://employeemanagement-9wv3.onrender.com'), // Point to your public Render URL
         '/offline': (context) => const ErrorScreen(),
       },
     );
