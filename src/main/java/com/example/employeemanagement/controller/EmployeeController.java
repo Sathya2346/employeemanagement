@@ -168,6 +168,11 @@ public class EmployeeController {
             return "redirect:/admin/profile";
         }
 
+        // Ensure embedded objects are initialized to prevent NullPointerException in Thymeleaf rendering
+        if (existingEmployee.getCompanyDetails() == null) {
+            existingEmployee.setCompanyDetails(new CompanyDetails());
+        }
+
         // Validate only fields starting with "companyDetails."
         boolean hasCompanyErrors = bindingResult.getFieldErrors().stream()
                 .anyMatch(e -> e.getField().startsWith("companyDetails."));
@@ -199,6 +204,9 @@ public class EmployeeController {
                 exCd.setJoiningDate(cd.getJoiningDate());
                 exCd.setLeavingDate(cd.getLeavingDate());
                 exCd.setStatus(cd.getStatus());
+            }
+            if (existingEmployee.getBankDetails() == null) {
+                existingEmployee.setBankDetails(new BankDetails());
             }
             model.addAttribute("employee", existingEmployee);
             model.addAttribute("shiftTimings", shiftTimingRepository.findAll());
@@ -244,12 +252,18 @@ public class EmployeeController {
                     exCd.setStatus(cd.getStatus());
                 }
             }
+            if (existingEmployee.getBankDetails() == null) {
+                existingEmployee.setBankDetails(new BankDetails());
+            }
             model.addAttribute("employee", existingEmployee);
             model.addAttribute("shiftTimings", shiftTimingRepository.findAll());
             return "admin/updateEmployee";
         } catch (Exception e) {
             System.err.println("Unexpected error during update: " + e.getMessage());
             e.printStackTrace();
+            if (existingEmployee.getBankDetails() == null) {
+                existingEmployee.setBankDetails(new BankDetails());
+            }
             model.addAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
             model.addAttribute("employee", existingEmployee);
             model.addAttribute("shiftTimings", shiftTimingRepository.findAll());

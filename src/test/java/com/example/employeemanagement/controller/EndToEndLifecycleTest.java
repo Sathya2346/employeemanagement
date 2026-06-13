@@ -196,4 +196,45 @@ public class EndToEndLifecycleTest {
                 .andExpect(view().name("user/userHourlyReport"))
                 .andExpect(model().attributeExists("employee"));
     }
+
+    @Test
+    public void testUpdateEmployeeWithNullBankDetails() throws Exception {
+        // Create an employee with NO bank details
+        Employee employee = new Employee();
+        employee.setFirstname("John");
+        employee.setLastname("Smith");
+        employee.setUsername("johnsmith");
+        employee.setEmail("johnsmith@example.com");
+        employee.setPassword("password123");
+        employee.setDateOfBirth(LocalDate.of(1990, 1, 1));
+        employee.setGender("Male");
+        employee.setPhone("1234567891");
+        employee.setAddress("123 Elm St");
+        employee.setCity("Chicago");
+        employee.setOverallStatus("PENDING");
+        employee.setUserType("ROLE_USER");
+        
+        Employee saved = employeeRepository.save(employee);
+        assertNotNull(saved.getId());
+        assertNull(saved.getBankDetails());
+        
+        // Now try to update Company Details via the endpoint
+        mockMvc.perform(post("/admin/updateEmployee/" + saved.getId())
+                .with(user("admin").roles("ADMIN"))
+                .param("companyDetails.employeeEmail", "johnsmith@company.com")
+                .param("companyDetails.designation", "Developer")
+                .param("companyDetails.shiftTiming", "General Shift (09:00 AM - 06:00 PM)")
+                .param("companyDetails.joiningDate", "2026-06-01")
+                .param("companyDetails.status", "Active"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/profile?success"));
+                
+        // Reload and check that bank details are still null
+        Employee updated = employeeRepository.findById(saved.getId()).orElse(null);
+        assertNotNull(updated);
+        assertNull(updated.getBankDetails());
+        assertNotNull(updated.getCompanyDetails());
+        assertEquals("johnsmith@company.com", updated.getCompanyDetails().getEmployeeEmail());
+    }
 }
+

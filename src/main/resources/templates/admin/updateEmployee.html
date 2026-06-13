@@ -83,7 +83,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Employee Email*</label>
                                     <input type="email" th:field="*{companyDetails.employeeEmail}" class="form-control"
-                                        th:classappend="${#fields.hasErrors('companyDetails.employeeEmail')} ? 'is-invalid' : ''">
+                                        th:classappend="${#fields.hasErrors('companyDetails.employeeEmail')} ? 'is-invalid' : ''" required>
                                     <div class="invalid-feedback"
                                         th:if="${#fields.hasErrors('companyDetails.employeeEmail')}"
                                         th:errors="*{companyDetails.employeeEmail}"></div>
@@ -92,7 +92,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Designation*</label>
                                     <input type="text" th:field="*{companyDetails.designation}" class="form-control"
-                                        th:classappend="${#fields.hasErrors('companyDetails.designation')} ? 'is-invalid' : ''">
+                                        th:classappend="${#fields.hasErrors('companyDetails.designation')} ? 'is-invalid' : ''" required>
                                     <div class="invalid-feedback"
                                         th:if="${#fields.hasErrors('companyDetails.designation')}"
                                         th:errors="*{companyDetails.designation}"></div>
@@ -100,7 +100,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Shift Timing*</label>
                                     <select class="form-select" th:field="*{companyDetails.shiftTiming}"
-                                        th:classappend="${#fields.hasErrors('companyDetails.shiftTiming')} ? 'is-invalid' : ''">
+                                        th:classappend="${#fields.hasErrors('companyDetails.shiftTiming')} ? 'is-invalid' : ''" required>
                                         <option value="" disabled selected>Select Shift</option>
                                         <option th:each="shift : ${shiftTimings}" th:value="${shift.name}" th:text="${shift.name}"></option>
                                     </select>
@@ -112,7 +112,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Joining Date*</label>
                                     <input type="date" th:field="*{companyDetails.joiningDate}" class="form-control"
-                                        th:classappend="${#fields.hasErrors('companyDetails.joiningDate')} ? 'is-invalid' : ''">
+                                        th:classappend="${#fields.hasErrors('companyDetails.joiningDate')} ? 'is-invalid' : ''" required>
                                     <div class="invalid-feedback"
                                         th:if="${#fields.hasErrors('companyDetails.joiningDate')}"
                                         th:errors="*{companyDetails.joiningDate}"></div>
@@ -128,7 +128,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Status*</label>
                                     <select class="form-select" th:field="*{companyDetails.status}"
-                                        th:classappend="${#fields.hasErrors('companyDetails.status')} ? 'is-invalid' : ''">
+                                        th:classappend="${#fields.hasErrors('companyDetails.status')} ? 'is-invalid' : ''" required>
                                         <option value="" disabled>Select</option>
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
@@ -275,20 +275,21 @@
                 if (!fieldConfig.regex.test(value)) {
                     valid = false;
                     errorEl.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i>${fieldConfig.error}`;
-                    input.classList.add("border-danger");
-                    input.classList.remove("is-valid", "is-invalid");
+                    input.classList.add("is-invalid");
+                    input.classList.remove("is-valid");
                 } else {
                     valid = true;
                     errorEl.innerHTML = "";
-                    input.classList.remove("border-danger", "is-invalid");
+                    input.classList.remove("is-invalid");
                     input.classList.add("is-valid");
-
-                    // Auto-focus next
-                    if (fieldConfig.next && value.length === fieldConfig.maxLength) {
-                        const nextInput = form.querySelector(`[name='${fieldConfig.next}']`);
-                        if (nextInput) nextInput.focus();
-                    }
                 }
+                
+                // Auto-focus next
+                if (fieldConfig.next && value.length === fieldConfig.maxLength) {
+                    const nextInput = form.querySelector(`[name='${fieldConfig.next}']`);
+                    if (nextInput) nextInput.focus();
+                }
+                
                 return valid;
             };
 
@@ -329,6 +330,10 @@
             };
 
             // Initial check
+            Object.keys(fields).forEach(key => {
+                const input = form.querySelector(`[name='${key}']`);
+                if (input) validateInput(input);
+            });
             checkForm();
         });
     </script>

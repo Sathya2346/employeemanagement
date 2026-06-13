@@ -1,0 +1,35 @@
+name: employee_management_app
+description: A premium, cross-platform mobile wrapper for the Employee Management System.
+version: 1.0.1+2
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+  
+  # WebView Container
+  flutter_inappwebview: ^6.0.0
+  
+  # Network & State detection
+  connectivity_plus: ^6.0.3
+  http: ^1.2.1
+  
+  # Storage, permissions & File opening
+  path_provider: ^2.1.3
+  permission_handler: ^11.3.1
+  open_filex: ^4.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Add asset declarations if we need custom icons/fonts later
+  # assets:
+  #   - assets/images/

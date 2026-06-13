@@ -92,11 +92,10 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- In-Memory Database for Testing -->
+		<!-- In-Memory Database for Testing & Dev Fallback -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<!-- Spring Security Test -->

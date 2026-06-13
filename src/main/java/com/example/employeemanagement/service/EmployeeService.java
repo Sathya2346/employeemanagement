@@ -238,6 +238,13 @@ public class EmployeeService {
             adminRepository.save(admin);
         }
 
+        // Print the OTP directly to the console for local development testing
+        System.out.println("\n-------------------------------------------------------------");
+        System.out.println("🔐 [DEVELOPMENT OTP] generated for: " + email);
+        System.out.println("   OTP Code: " + otp);
+        System.out.println("   Validity: " + OTP_EXPIRATION_MINUTES + " minutes");
+        System.out.println("-------------------------------------------------------------\n");
+
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
@@ -248,7 +255,8 @@ public class EmployeeService {
 
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+            System.err.println("⚠️ WARNING: Failed to send OTP email via SMTP (" + e.getMessage() + ").");
+            System.err.println("   You can use the [DEVELOPMENT OTP] printed in the console logs above to proceed.");
         }
     }
 
