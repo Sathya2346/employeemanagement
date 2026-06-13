@@ -143,6 +143,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
                   domStorageEnabled: true,
                   supportZoom: false,
                   allowsBackForwardNavigationGestures: true,
+                  sharedCookiesEnabled: true,
+                  thirdPartyCookiesEnabled: true,
                 ),
                 pullToRefreshController: _pullToRefreshController,
                 onWebViewCreated: (controller) {
