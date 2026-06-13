@@ -50,6 +50,13 @@
             <version>8.3.0</version>
         </dependency>
 
+        <!-- PostgreSQL driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- DevTools for hot reload -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
