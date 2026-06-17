@@ -3,6 +3,7 @@ package com.example.employeemanagement.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -90,9 +91,16 @@ public class EmployeeService {
             message.setTo(email);
             message.setSubject(subject);
             message.setText(body);
-            mailSender.send(message);
+
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(message);
+                } catch (Exception e) {
+                    System.err.println("Failed to send welcome email: " + e.getMessage());
+                }
+            });
         } catch (Exception e) {
-            System.err.println("Failed to send welcome email: " + e.getMessage());
+            System.err.println("Failed to prepare welcome email: " + e.getMessage());
         }
     }
 
@@ -246,9 +254,15 @@ public class EmployeeService {
             message.setText("Your password reset OTP is: " + otp +
                     ". It is valid for " + OTP_EXPIRATION_MINUTES + " minutes.");
 
-            mailSender.send(message);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(message);
+                } catch (Exception e) {
+                    System.err.println("Failed to send OTP email: " + e.getMessage());
+                }
+            });
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to prepare OTP email: " + e.getMessage(), e);
         }
     }
 

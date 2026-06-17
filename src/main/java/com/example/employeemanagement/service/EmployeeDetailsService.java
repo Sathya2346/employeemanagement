@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import java.util.concurrent.CompletableFuture;
 
 import com.example.employeemanagement.model.EmployeeDetails;
 import com.example.employeemanagement.model.Employee;
@@ -178,9 +179,15 @@ public class EmployeeDetailsService {
             msg.setTo(senderEmail); // Send to HR/Admin Gmail
             msg.setSubject("📋 Onboarding Details Submitted - " + e.getFirstname() + " " + e.getLastname());
             msg.setText(sb.toString());
-            mailSender.send(msg);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(msg);
+                } catch (Exception ex) {
+                    System.err.println("Failed to send onboarding details email: " + ex.getMessage());
+                }
+            });
         } catch (Exception ex) {
-            System.err.println("Failed to send onboarding details email: " + ex.getMessage());
+            System.err.println("Failed to prepare onboarding details email: " + ex.getMessage());
         }
     }
 
@@ -371,9 +378,15 @@ public class EmployeeDetailsService {
             msg.setTo(email);
             msg.setSubject(subject);
             msg.setText(body);
-            mailSender.send(msg);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(msg);
+                } catch (Exception ex) {
+                    System.err.println("Approval email failed: " + ex.getMessage());
+                }
+            });
         } catch (Exception ex) {
-            System.err.println("Approval email failed: " + ex.getMessage());
+            System.err.println("Approval email preparation failed: " + ex.getMessage());
         }
     }
 
@@ -424,9 +437,15 @@ public class EmployeeDetailsService {
             msg.setTo(email);
             msg.setSubject(subject);
             msg.setText(body);
-            mailSender.send(msg);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(msg);
+                } catch (Exception ex) {
+                    System.err.println("Rejection email failed: " + ex.getMessage());
+                }
+            });
         } catch (Exception ex) {
-            System.err.println("Rejection email failed: " + ex.getMessage());
+            System.err.println("Rejection email preparation failed: " + ex.getMessage());
         }
     }
 
@@ -446,9 +465,15 @@ public class EmployeeDetailsService {
             msg.setTo(e.getEmail());
             msg.setSubject(subject);
             msg.setText(body);
-            mailSender.send(msg);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(msg);
+                } catch (Exception ex) {
+                    System.err.println("Receipt email failed: " + ex.getMessage());
+                }
+            });
         } catch (Exception ex) {
-            System.err.println("Receipt email failed: " + ex.getMessage());
+            System.err.println("Receipt email preparation failed: " + ex.getMessage());
         }
     }
 
