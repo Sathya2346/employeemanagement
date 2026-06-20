@@ -330,25 +330,34 @@ public class EmployeeDetailsService {
             
             notificationService.sendNotification(
                 "Onboarding Approved",
-                "Congratulations! Your onboarding profile has been fully approved. You now have full access to the portal.",
+                "Congratulations! Your onboarding profile has been fully approved. You now have complete access to the portal.",
                 "Onboarding",
                 e.getId(),
                 e.getUsername()
             );
             notifyUserOfApproval(e.getEmail(), e.getFirstname() + " " + e.getLastname());
         } else {
-            e.setOverallStatus("CHANGES_REQUESTED");
-            e.setNotifyAdminFlag(false);
-            employeeRepository.save(e);
-            
-            notificationService.sendNotification(
-                "Changes Requested",
-                "Your onboarding profile requires some changes. Please check the rejected fields and resubmit.",
-                "Onboarding",
-                e.getId(),
-                e.getUsername()
-            );
-            notifyUserOfRejections(e.getEmail(), e.getFirstname() + " " + e.getLastname(), ex);
+            // Check if there are actual rejected fields
+            boolean hasRejections = hasRejectedFields(ex);
+            if (hasRejections) {
+                e.setOverallStatus("CHANGES_REQUESTED");
+                e.setNotifyAdminFlag(false);
+                employeeRepository.save(e);
+                
+                notificationService.sendNotification(
+                    "Changes Requested",
+                    "Your onboarding profile requires some changes. Please check the rejected fields and resubmit.",
+                    "Onboarding",
+                    e.getId(),
+                    e.getUsername()
+                );
+                notifyUserOfRejections(e.getEmail(), e.getFirstname() + " " + e.getLastname(), ex);
+            } else {
+                // If not all approved and no rejections, review is still in progress (some fields are pending)
+                e.setOverallStatus("DETAILS_SUBMITTED");
+                e.setNotifyAdminFlag(false);
+                employeeRepository.save(e);
+            }
         }
     }
 
@@ -487,5 +496,38 @@ public class EmployeeDetailsService {
               .append((reason != null && !reason.trim().isEmpty()) ? reason.trim() : "Please correct")
               .append("\n");
         }
+    }
+
+    private boolean hasRejectedFields(EmployeeDetails d) {
+        if ("REJECTED".equalsIgnoreCase(d.getPhoneStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getAddressStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getCityStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getGenderStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getDobStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getEmergencyStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getMaritalFieldStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getLanguageStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getBloodStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getAadharStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getPanStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getAccountStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getBankNameStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getIfscStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getBranchStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getDegreeNameStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getDegreeInstStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getPhotoStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getMark10thStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getMark12thStatus())) return true;
+        for (int i = 1; i <= 8; i++) {
+            try {
+                String status = (String) d.getClass().getMethod("getSem" + i + "Status").invoke(d);
+                if ("REJECTED".equalsIgnoreCase(status)) return true;
+            } catch (Exception ignored) {}
+        }
+        if ("REJECTED".equalsIgnoreCase(d.getTransferCertStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getProvisionalCertStatus())) return true;
+        if ("REJECTED".equalsIgnoreCase(d.getCourseCompletionStatus())) return true;
+        return false;
     }
 }
