@@ -184,6 +184,7 @@ public class EmployeeDetailsService {
                     mailSender.send(msg);
                 } catch (Exception ex) {
                     System.err.println("Failed to send onboarding details email: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             });
         } catch (Exception ex) {
@@ -383,6 +384,7 @@ public class EmployeeDetailsService {
                     mailSender.send(msg);
                 } catch (Exception ex) {
                     System.err.println("Approval email failed: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             });
         } catch (Exception ex) {
@@ -442,6 +444,7 @@ public class EmployeeDetailsService {
                     mailSender.send(msg);
                 } catch (Exception ex) {
                     System.err.println("Rejection email failed: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             });
         } catch (Exception ex) {
@@ -470,6 +473,7 @@ public class EmployeeDetailsService {
                     mailSender.send(msg);
                 } catch (Exception ex) {
                     System.err.println("Receipt email failed: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             });
         } catch (Exception ex) {

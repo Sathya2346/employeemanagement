@@ -74,34 +74,33 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
+    @Transactional
+    public void createEmployeeWithEmail(Employee employee, String rawPassword) {
+        // Save the employee first (database transaction is active)
+        saveEmployee(employee);
+
+        // Send welcome email synchronously. If it fails, an exception is thrown, rolling back the transaction.
+        sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+    }
+
     public void sendWelcomeEmail(String email, String username, String password) {
-        try {
-            Settings settings = settingsRepository.findById("default").orElseGet(() -> {
-                Settings ds = new Settings();
-                return settingsRepository.save(ds);
-            });
-            String subject = settings.getWelcomeEmailSubject();
-            String body = settings.getWelcomeEmailBody()
-                    .replace("{username}", username)
-                    .replace("{email}", email)
-                    .replace("{password}", password);
+        Settings settings = settingsRepository.findById("default").orElseGet(() -> {
+            Settings ds = new Settings();
+            return settingsRepository.save(ds);
+        });
+        String subject = settings.getWelcomeEmailSubject();
+        String body = settings.getWelcomeEmailBody()
+                .replace("{username}", username)
+                .replace("{email}", email)
+                .replace("{password}", password);
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(senderEmail);
-            message.setTo(email);
-            message.setSubject(subject);
-            message.setText(body);
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(senderEmail);
+        message.setTo(email);
+        message.setSubject(subject);
+        message.setText(body);
 
-            CompletableFuture.runAsync(() -> {
-                try {
-                    mailSender.send(message);
-                } catch (Exception e) {
-                    System.err.println("Failed to send welcome email: " + e.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("Failed to prepare welcome email: " + e.getMessage());
-        }
+        mailSender.send(message);
     }
 
     public boolean login(String email, String password) {
@@ -259,6 +258,7 @@ public class EmployeeService {
                     mailSender.send(message);
                 } catch (Exception e) {
                     System.err.println("Failed to send OTP email: " + e.getMessage());
+                    e.printStackTrace();
                 }
             });
         } catch (Exception e) {

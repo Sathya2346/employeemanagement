@@ -115,10 +115,21 @@ public class EmployeeController {
         employee.setLeaveBalance(employee.getTotalLeaves());
 
         try {
-            employeeService.saveEmployee(employee);
-            employeeService.sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+            employeeService.createEmployeeWithEmail(employee, rawPassword);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             model.addAttribute("errorMessage", "Email or Username already exists!");
+            model.addAttribute("employee", employee);
+            return "admin/addEmployee";
+        } catch (org.springframework.mail.MailException e) {
+            System.err.println("SMTP Email Error: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "Failed to send welcome email. Employee account was NOT created. Please check your SMTP / mail configuration.");
+            model.addAttribute("employee", employee);
+            return "admin/addEmployee";
+        } catch (Exception e) {
+            System.err.println("Error creating employee: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
             model.addAttribute("employee", employee);
             return "admin/addEmployee";
         }
