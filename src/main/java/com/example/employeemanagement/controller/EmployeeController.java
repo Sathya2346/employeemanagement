@@ -99,8 +99,8 @@ public class EmployeeController {
         if (employee.getUserType() == null || employee.getUserType().isEmpty()) {
             employee.setUserType("ROLE_USER");
         }
-        // Auto-generate a secure random password (admin does not set it)
-        String rawPassword = generateAutoPassword();
+        // Default password to the user's personal email (admin does not set it)
+        String rawPassword = employee.getEmail();
         employee.setPassword(rawPassword);
         employee.setOverallStatus("PENDING");
 
@@ -115,10 +115,21 @@ public class EmployeeController {
         employee.setLeaveBalance(employee.getTotalLeaves());
 
         try {
-            employeeService.saveEmployee(employee);
-            employeeService.sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+            employeeService.createEmployeeWithEmail(employee, rawPassword);
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             model.addAttribute("errorMessage", "Email or Username already exists!");
+            model.addAttribute("employee", employee);
+            return "admin/addEmployee";
+        } catch (org.springframework.mail.MailException e) {
+            System.err.println("SMTP Email Error: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "Failed to send welcome email. Employee account was NOT created. Please check your SMTP / mail configuration.");
+            model.addAttribute("employee", employee);
+            return "admin/addEmployee";
+        } catch (Exception e) {
+            System.err.println("Error creating employee: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
             model.addAttribute("employee", employee);
             return "admin/addEmployee";
         }
@@ -126,14 +137,7 @@ public class EmployeeController {
         return "redirect:/admin/profile";
     }
 
-    /** Generates an 8-character alphanumeric password */
-    private String generateAutoPassword() {
-        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!";
-        java.util.Random rnd = new java.util.Random();
-        StringBuilder sb = new StringBuilder(10);
-        for (int i = 0; i < 10; i++) sb.append(chars.charAt(rnd.nextInt(chars.length())));
-        return sb.toString();
-    }
+
 
     // ✅ 4. Show employee details page (edit form)
     @GetMapping("/viewEmployeeDetails/{id}")

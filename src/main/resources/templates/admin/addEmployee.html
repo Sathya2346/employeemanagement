@@ -95,7 +95,7 @@
                                 th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''"
                                 placeholder="e.g. ravi.kumar">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
-                            <small class="text-muted">A secure password will be auto-generated and emailed to the employee.</small>
+                            <small class="text-muted">The employee's personal email will be set as the default password and emailed to them.</small>
                         </div>
 
                         <!-- ── Role ── -->

@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "ems-mobile",
+    "slug": "ems-mobile",
+    "version": "1.0.0",
+    "sdkVersion": "50.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "android": {
+      "package": "com.example.employeemanagement"
+    }
+  }
+}

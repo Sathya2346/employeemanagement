@@ -3,6 +3,7 @@ package com.example.employeemanagement.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -76,6 +77,12 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
+    @Transactional
+    public void createEmployeeWithEmail(Employee employee, String rawPassword) {
+        saveEmployee(employee);
+        sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+    }
+
     public boolean sendWelcomeEmail(String email, String username, String password) {
         try {
             java.util.Map<String, String> vars = new java.util.HashMap<>();
@@ -99,6 +106,7 @@ public class EmployeeService {
             e.printStackTrace();
             return false;
         }
+    }
     }
 
     public boolean login(String email, String password) {
@@ -260,9 +268,16 @@ public class EmployeeService {
             message.setSubject(rendered[0]);
             message.setText(rendered[1]);
 
-            mailSender.send(message);
+            CompletableFuture.runAsync(() -> {
+                try {
+                    mailSender.send(message);
+                } catch (Exception e) {
+                    System.err.println("Failed to send OTP email: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to prepare OTP email: " + e.getMessage(), e);
         }
     }
 

@@ -55,6 +55,7 @@ public class Employee implements Serializable {
     private LocalDate dateOfBirth;
 
     @Column(unique = true)
+    @NotBlank(message = "Email is required")
     @jakarta.validation.constraints.Email(message = "Invalid email format")
     private String email;
 
