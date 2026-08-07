@@ -14,14 +14,18 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.employeemanagement.model.Attendance;
 import com.example.employeemanagement.model.Employee;
 import com.example.employeemanagement.model.CompanyDetails;
+import com.example.employeemanagement.model.Leave;
 import com.example.employeemanagement.repository.AttendanceRepository;
 import com.example.employeemanagement.repository.EmployeeRepository;
+import com.example.employeemanagement.repository.LeaveRepository;
 
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-@SpringBootTest
+import com.example.employeemanagement.EmployeemanagementApplication;
+
+@SpringBootTest(classes = EmployeemanagementApplication.class)
 @ActiveProfiles("test")
 @Transactional
 public class AttendanceServiceTest {
@@ -35,10 +39,14 @@ public class AttendanceServiceTest {
     @Autowired
     private AttendanceRepository attendanceRepository;
 
+    @Autowired
+    private LeaveRepository leaveRepository;
+
     private Employee employee;
 
     @BeforeEach
     public void setup() {
+        leaveRepository.deleteAll();
         attendanceRepository.deleteAll();
         employeeRepository.deleteAll();
 
@@ -155,6 +163,17 @@ public class AttendanceServiceTest {
 
     @Test
     public void testSaveAttendanceLeaveClash() {
+        // Setup leave
+        Leave leave = new Leave();
+        leave.setEmployee(employee);
+        leave.setLeaveType("Paid Leave");
+        leave.setLeaveFromDate(LocalDate.now());
+        leave.setLeaveToDate(LocalDate.now());
+        leave.setLeaveDays(1);
+        leave.setLeaveStatus("Approved");
+        leaveRepository.save(leave);
+
+        // Also setup attendance record auto-marked as leave
         Attendance data = new Attendance();
         data.setEmployee(employee);
         data.setUsername(employee.getUsername());
@@ -163,14 +182,27 @@ public class AttendanceServiceTest {
         data.setStatus("Leave");
         attendanceRepository.save(data);
 
-        // Try checking in on a day with approved leave
+        // Store initial leave balance
+        int initialPaidLeave = employee.getPaidLeaveBalance();
+
+        // Check in on a day with approved leave (should cancel leave and succeed)
         Attendance checkInData = new Attendance();
         checkInData.setAttendanceDate(LocalDate.now());
         checkInData.setCheckInTime(LocalTime.of(9, 0));
 
-        assertThrows(RuntimeException.class, () -> {
-            attendanceService.saveAttendance(employee.getId(), checkInData);
-        });
+        Attendance saved = attendanceService.saveAttendance(employee.getId(), checkInData);
+
+        // Verify check-in succeeded
+        assertNotNull(saved);
+        assertFalse(saved.getLeaveApproved());
+
+        // Verify leave was cancelled
+        Leave updatedLeave = leaveRepository.findById(leave.getId()).orElseThrow();
+        assertEquals("Cancelled", updatedLeave.getLeaveStatus());
+
+        // Verify leave balance was refunded
+        Employee updatedEmployee = employeeRepository.findById(employee.getId()).orElseThrow();
+        assertEquals(initialPaidLeave + 1, updatedEmployee.getPaidLeaveBalance());
     }
 
     @Test

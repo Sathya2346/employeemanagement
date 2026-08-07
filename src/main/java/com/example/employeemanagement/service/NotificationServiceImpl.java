@@ -16,6 +16,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private com.example.employeemanagement.repository.LeaveRepository leaveRepository;
+
     @Override
     public List<Notification> getAllNotifications() {
         return notificationRepository.findAllByOrderByCreatedAtDesc();
@@ -42,6 +45,26 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendNotification(Notification notification) {
+        if ("Leave".equalsIgnoreCase(notification.getType()) && notification.getReferenceId() != null) {
+            try {
+                leaveRepository.findById(notification.getReferenceId()).ifPresent(leave -> {
+                    notification.setEmployeeName(leave.getEmployeeName());
+                    notification.setLeaveType(leave.getLeaveType());
+                    if (leave.getLeaveFromDate() != null) {
+                        notification.setLeaveFromDate(leave.getLeaveFromDate().toString());
+                    }
+                    if (leave.getLeaveToDate() != null) {
+                        notification.setLeaveToDate(leave.getLeaveToDate().toString());
+                    }
+                    if (notification.getLeaveStatus() == null || notification.getLeaveStatus().isEmpty()) {
+                        notification.setLeaveStatus(leave.getLeaveStatus());
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to enrich leave notification details: " + e.getMessage());
+            }
+        }
+
         if (notification.getCreatedAt() == null)
             notification.setCreatedAt(java.time.LocalDateTime.now(AppConstants.IST));
         notificationRepository.save(notification);
@@ -98,5 +121,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Notification getNotificationById(Long id) {
         return notificationRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void updateLeaveStatusOfNotifications(Long referenceId, String status) {
+        notificationRepository.updateLeaveStatusByReferenceId(referenceId, status);
     }
 }

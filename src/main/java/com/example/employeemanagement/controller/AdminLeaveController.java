@@ -110,6 +110,7 @@ public class AdminLeaveController {
 
             // ✅ REMOVE OLD PENDING NOTIFICATION
             notificationService.removePendingLeaveNotification(leave.getId());
+            notificationService.updateLeaveStatusOfNotifications(leave.getId(), status);
 
             // ✅ CREATE NEW NOTIFICATION FOR APPROVED/REJECTED
             String msg = "Your leave from " + leave.getLeaveFromDate() + " to " + leave.getLeaveToDate();

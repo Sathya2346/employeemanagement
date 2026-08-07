@@ -116,31 +116,57 @@ a {
 }
 
 /* ===== Buttons ===== */
-.btn-month{
-    background-color: #1abc9c;
-    color: #fff;
-    border-radius: 8px;
-    padding: 6px 14px;
-    border: none;
-    transition: 0.3s;
+.btn-month,
+.btn-calendar,
+#filterBtn,
+#filterAttendanceBtn,
+#filterLeaveBtn {
+    background-color: #23d2aa !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-month:hover {
-    background-color: #17a589;
+.btn-month:hover,
+.btn-calendar:hover,
+#filterBtn:hover,
+#filterAttendanceBtn:hover,
+#filterLeaveBtn:hover {
+    background-color: #50d2b3 !important;
+    color: #ffffff !important;
 }
 
-.btn-download {
-    background-color: #FF7423;
-    color: #fff;
-    border-radius: 8px;
-    padding: 6px 14px;
-    border: none;
-    transition: 0.3s;
+.btn-download,
+#pdfBtn,
+#downloadPdfBtn,
+#downloadAttendanceBtn,
+#downloadLeaveBtn {
+    background-color: #FF7423 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-download:hover {
-    background-color: #d94f21;
+.btn-download:hover,
+#pdfBtn:hover,
+#downloadPdfBtn:hover,
+#downloadAttendanceBtn:hover,
+#downloadLeaveBtn:hover {
+    background-color: #e65c0d !important;
+    color: #ffffff !important;
 }
+
+/* ===== Status Badge Colors ===== */
+.badge-working  { background-color: #16A34A; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-present  { background-color: #0F766E; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-break    { background-color: #F59E0B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-meeting  { background-color: #7C3AED; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-idle     { background-color: #64748B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-leave    { background-color: #1D4ED8; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-absent   { background-color: #DC2626; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-partial  { background-color: #8B8B8B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
 
 input.form-control,
 select.form-select {
@@ -152,6 +178,27 @@ input.form-control:focus,
 select.form-select:focus {
     border-color: #23d2aa;
     box-shadow: 0 0 5px rgba(92, 184, 186, 0.4);
+}
+
+/* ===== Table Section ===== */
+.table-container {
+    background-color: white;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 25px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+th {
+    background-color: #adf0da;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+td {
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
 /* ===== Responsive ===== */
@@ -178,8 +225,9 @@ select.form-select:focus {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {
@@ -193,7 +241,10 @@ select.form-select:focus {
 }
 
 /* Small Devices (Mobiles) */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
+    table {
+        font-size: 0.9rem;
+    }
     .sidebar {
         width: 80%;
         overflow-y: auto;
@@ -203,7 +254,14 @@ select.form-select:focus {
     .main-content {
         padding: 15px;
     }
-    .table-container{
+    .table-container {
         overflow-x: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    th,
+    td {
+        font-size: 0.85rem;
     }
 }

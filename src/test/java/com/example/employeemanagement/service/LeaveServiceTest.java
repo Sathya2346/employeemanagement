@@ -20,7 +20,9 @@ import com.example.employeemanagement.repository.AttendanceRepository;
 import java.time.LocalDate;
 import java.util.List;
 
-@SpringBootTest
+import com.example.employeemanagement.EmployeemanagementApplication;
+
+@SpringBootTest(classes = EmployeemanagementApplication.class)
 @ActiveProfiles("test")
 @Transactional
 public class LeaveServiceTest {

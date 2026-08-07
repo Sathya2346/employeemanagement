@@ -150,9 +150,9 @@
                 <div class="card-body p-4 p-md-5">
                     
                     <!-- Status Alerts -->
-                    <div th:if="${overallStatus == 'FULLY_APPROVED'}" class="alert alert-success border-0 rounded-4 p-4 shadow-sm mb-5">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-patch-check-fill fs-1 me-4"></i>
+                    <div th:if="${overallStatus == 'FULLY_APPROVED'}" class="alert alert-success border-0 rounded-4 p-3 p-sm-4 shadow-sm mb-4">
+                        <div class="d-flex align-items-start align-items-sm-center gap-3">
+                            <i class="bi bi-patch-check-fill fs-1 text-success flex-shrink-0"></i>
                             <div>
                                 <h4 class="alert-heading fw-bold mb-1">Verification Complete!</h4>
                                 <p class="mb-0">Welcome aboard! Your documents have been successfully verified.</p>
@@ -161,9 +161,9 @@
                         </div>
                     </div>
                     
-                    <div th:if="${overallStatus == 'DETAILS_SUBMITTED'}" class="alert alert-info border-0 rounded-4 p-4 shadow-sm mb-5">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border text-info me-4" role="status"></div>
+                    <div th:if="${overallStatus == 'DETAILS_SUBMITTED'}" class="alert alert-info border-0 rounded-4 p-3 p-sm-4 shadow-sm mb-4">
+                        <div class="d-flex align-items-start align-items-sm-center gap-3">
+                            <div class="spinner-border text-info flex-shrink-0 mt-1 mt-sm-0" role="status" style="width: 2rem; height: 2rem;"></div>
                             <div>
                                 <h4 class="alert-heading fw-bold mb-1">Under Review</h4>
                                 <p class="mb-0 text-muted">Our HR team is currently verifying your details. This usually takes 24-48 hours.</p>
@@ -171,9 +171,9 @@
                         </div>
                     </div>
 
-                    <div th:if="${overallStatus == 'CHANGES_REQUESTED'}" class="alert alert-warning border-0 rounded-4 p-4 shadow-sm mb-5">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-exclamation-octagon-fill fs-1 me-4"></i>
+                    <div th:if="${overallStatus == 'CHANGES_REQUESTED'}" class="alert alert-warning border-0 rounded-4 p-3 p-sm-4 shadow-sm mb-4">
+                        <div class="d-flex align-items-start align-items-sm-center gap-3">
+                            <i class="bi bi-exclamation-octagon-fill fs-1 text-warning flex-shrink-0"></i>
                             <div>
                                 <h4 class="alert-heading fw-bold mb-1">Attention Required</h4>
                                 <p class="mb-0">Some information needs your attention. Please check the highlighted sections below.</p>
@@ -185,7 +185,7 @@
                         <fieldset th:disabled="${overallStatus == 'DETAILS_SUBMITTED' || overallStatus == 'FULLY_APPROVED'}">
                             
                             <!-- 1. PERSONAL INFORMATION -->
-                            <div class="section-header"><i class="bi bi-person-badge fs-4"></i>1. Personal Profile</div>
+                            <div class="section-header"><i class="bi bi-person-vcard-fill fs-4"></i>1. Personal Profile</div>
                             <div class="row g-4">
                                 <div class="col-md-4">
                                     <div class="field-container" th:classappend="${details.phoneStatus == 'APPROVED' ? 'status-approved' : (details.phoneStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
@@ -208,8 +208,40 @@
                                 <div class="col-md-4">
                                     <div class="field-container" th:classappend="${details.dobStatus == 'APPROVED' ? 'status-approved' : (details.dobStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
                                         <label class="form-label small fw-bold">Date of Birth</label>
-                                        <input type="date" class="form-control" th:field="*{personalDateOfBirth}" id="personalDateOfBirth">
-                                        <div class="validation-suggestion suggestion-pending" id="dobHint"><i class="bi bi-info-circle me-1"></i> Min 18 years old</div>
+                                        <input type="date" class="form-control mb-2" th:field="*{personalDateOfBirth}" id="personalDateOfBirth" min="1950-01-01" max="2008-12-31">
+                                        
+                                        <!-- Quick Selection for Mobile (Day / Month / Year Dropdowns) -->
+                                        <div class="row g-1" id="dobQuickSelect">
+                                            <div class="col-4">
+                                                <select class="form-select form-select-sm" id="dobDaySelect">
+                                                    <option value="">Day</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select class="form-select form-select-sm" id="dobMonthSelect">
+                                                    <option value="">Month</option>
+                                                    <option value="01">Jan</option>
+                                                    <option value="02">Feb</option>
+                                                    <option value="03">Mar</option>
+                                                    <option value="04">Apr</option>
+                                                    <option value="05">May</option>
+                                                    <option value="06">Jun</option>
+                                                    <option value="07">Jul</option>
+                                                    <option value="08">Aug</option>
+                                                    <option value="09">Sep</option>
+                                                    <option value="10">Oct</option>
+                                                    <option value="11">Nov</option>
+                                                    <option value="12">Dec</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select class="form-select form-select-sm" id="dobYearSelect">
+                                                    <option value="">Year</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="validation-suggestion suggestion-pending mt-1" id="dobHint"><i class="bi bi-info-circle me-1"></i> Min 18 years old</div>
                                         <div th:if="${details.dobStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
                                         <div th:if="${details.dobStatus == 'REJECTED'}" class="rejection-text"><i class="bi bi-x-circle me-1"></i> <span th:text="${details.dobRejectionReason}"></span></div>
                                     </div>
@@ -478,10 +510,71 @@ document.addEventListener('DOMContentLoaded', function() {
         if(emergencyInput) emergencyInput.addEventListener('input', validateEmergency);
     }
 
-    // 2. DOB Validation
+    // 2. DOB Validation & Mobile Quick Dropdowns (Day/Month/Year)
     const dobInput = document.getElementById('personalDateOfBirth');
+    const dobDaySelect = document.getElementById('dobDaySelect');
+    const dobMonthSelect = document.getElementById('dobMonthSelect');
+    const dobYearSelect = document.getElementById('dobYearSelect');
+
+    if (dobDaySelect && dobYearSelect) {
+        // Populate Days 01 to 31
+        for (let d = 1; d <= 31; d++) {
+            const val = String(d).padStart(2, '0');
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            dobDaySelect.appendChild(opt);
+        }
+
+        // Populate Years 2008 down to 1950 (easy past year selection on mobile)
+        const currentYear = new Date().getFullYear();
+        const maxYear = currentYear - 18;
+        for (let y = maxYear; y >= 1950; y--) {
+            const opt = document.createElement('option');
+            opt.value = String(y);
+            opt.textContent = String(y);
+            dobYearSelect.appendChild(opt);
+        }
+
+        // Sync dropdowns -> Date Input
+        const syncDropdownsToDate = () => {
+            const y = dobYearSelect.value;
+            const m = dobMonthSelect.value;
+            const d = dobDaySelect.value;
+            if (y && m && d) {
+                dobInput.value = `${y}-${m}-${d}`;
+                dobInput.dispatchEvent(new Event('change'));
+            }
+        };
+
+        dobDaySelect.addEventListener('change', syncDropdownsToDate);
+        dobMonthSelect.addEventListener('change', syncDropdownsToDate);
+        dobYearSelect.addEventListener('change', syncDropdownsToDate);
+
+        // Sync Date Input -> Dropdowns
+        const syncDateToDropdowns = () => {
+            if (dobInput && dobInput.value) {
+                const parts = dobInput.value.split('-');
+                if (parts.length === 3) {
+                    dobYearSelect.value = parts[0];
+                    dobMonthSelect.value = parts[1];
+                    dobDaySelect.value = parts[2];
+                }
+            }
+        };
+
+        if (dobInput) {
+            dobInput.addEventListener('change', syncDateToDropdowns);
+            syncDateToDropdowns();
+        }
+    }
+
     if(dobInput) {
         dobInput.addEventListener('change', function() {
+            if (!this.value) {
+                updateHint('dobHint', false, '', 'Date of birth is required');
+                return;
+            }
             const dob = new Date(this.value);
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();

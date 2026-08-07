@@ -311,8 +311,9 @@ select.form-select:focus {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {

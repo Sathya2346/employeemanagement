@@ -278,21 +278,21 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="initialPaidLeave" class="form-label">Default Paid Leave</label>
-                                            <input type="number" class="form-control" th:field="*{initialPaidLeave}" id="initialPaidLeave" min="0" required>
+                                            <input type="number" class="form-control" th:field="*{initialPaidLeave}" id="initialPaidLeave" min="0">
                                             <small class="text-muted">Starting paid leaves for new employees.</small>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="initialSickLeave" class="form-label">Default Sick Leave</label>
-                                            <input type="number" class="form-control" th:field="*{initialSickLeave}" id="initialSickLeave" min="0" required>
+                                            <input type="number" class="form-control" th:field="*{initialSickLeave}" id="initialSickLeave" min="0">
                                             <small class="text-muted">Starting sick leaves for new employees.</small>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="initialCasualLeave" class="form-label">Default Casual Leave</label>
-                                            <input type="number" class="form-control" th:field="*{initialCasualLeave}" id="initialCasualLeave" min="0" required>
+                                            <input type="number" class="form-control" th:field="*{initialCasualLeave}" id="initialCasualLeave" min="0">
                                             <small class="text-muted">Starting casual leaves for new employees.</small>
                                         </div>
                                     </div>
@@ -306,11 +306,11 @@
                                     <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-card-heading me-2"></i>Welcome Email Template</h6>
                                     <div class="mb-3">
                                         <label for="welcomeEmailSubject" class="form-label">Welcome Email Subject</label>
-                                        <input type="text" class="form-control" th:field="*{welcomeEmailSubject}" id="welcomeEmailSubject" required>
+                                        <input type="text" class="form-control" th:field="*{welcomeEmailSubject}" id="welcomeEmailSubject">
                                     </div>
                                     <div class="mb-3">
                                         <label for="welcomeEmailBody" class="form-label">Welcome Email Body</label>
-                                        <textarea class="form-control" th:field="*{welcomeEmailBody}" id="welcomeEmailBody" rows="6" required></textarea>
+                                        <textarea class="form-control" th:field="*{welcomeEmailBody}" id="welcomeEmailBody" rows="6"></textarea>
                                         <div class="mt-2">
                                             <small class="text-muted d-block mb-1">Available Placeholders:</small>
                                             <span class="placeholder-badge">{username}</span>
@@ -325,11 +325,11 @@
                                     <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-earmark-check me-2"></i>Onboarding Submission Receipt Email</h6>
                                     <div class="mb-3">
                                         <label for="receiptEmailSubject" class="form-label">Receipt Email Subject</label>
-                                        <input type="text" class="form-control" th:field="*{receiptEmailSubject}" id="receiptEmailSubject" required>
+                                        <input type="text" class="form-control" th:field="*{receiptEmailSubject}" id="receiptEmailSubject">
                                     </div>
                                     <div class="mb-3">
                                         <label for="receiptEmailBody" class="form-label">Receipt Email Body</label>
-                                        <textarea class="form-control" th:field="*{receiptEmailBody}" id="receiptEmailBody" rows="5" required></textarea>
+                                        <textarea class="form-control" th:field="*{receiptEmailBody}" id="receiptEmailBody" rows="5"></textarea>
                                         <div class="mt-2">
                                             <small class="text-muted d-block mb-1">Available Placeholders:</small>
                                             <span class="placeholder-badge">{name}</span>
@@ -342,11 +342,11 @@
                                     <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-exclamation-triangle-fill me-2"></i>Changes Requested (Rejection) Email</h6>
                                     <div class="mb-3">
                                         <label for="rejectionEmailSubject" class="form-label">Changes Requested Subject</label>
-                                        <input type="text" class="form-control" th:field="*{rejectionEmailSubject}" id="rejectionEmailSubject" required>
+                                        <input type="text" class="form-control" th:field="*{rejectionEmailSubject}" id="rejectionEmailSubject">
                                     </div>
                                     <div class="mb-3">
                                         <label for="rejectionEmailBody" class="form-label">Changes Requested Body</label>
-                                        <textarea class="form-control" th:field="*{rejectionEmailBody}" id="rejectionEmailBody" rows="6" required></textarea>
+                                        <textarea class="form-control" th:field="*{rejectionEmailBody}" id="rejectionEmailBody" rows="6"></textarea>
                                         <div class="mt-2">
                                             <small class="text-muted d-block mb-1">Available Placeholders:</small>
                                             <span class="placeholder-badge">{name}</span>
@@ -360,14 +360,91 @@
                                     <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-patch-check-fill me-2"></i>Onboarding Fully Approved Email</h6>
                                     <div class="mb-3">
                                         <label for="approvalEmailSubject" class="form-label">Approval Email Subject</label>
-                                        <input type="text" class="form-control" th:field="*{approvalEmailSubject}" id="approvalEmailSubject" required>
+                                        <input type="text" class="form-control" th:field="*{approvalEmailSubject}" id="approvalEmailSubject">
                                     </div>
                                     <div class="mb-3">
                                         <label for="approvalEmailBody" class="form-label">Approval Email Body</label>
-                                        <textarea class="form-control" th:field="*{approvalEmailBody}" id="approvalEmailBody" rows="5" required></textarea>
+                                        <textarea class="form-control" th:field="*{approvalEmailBody}" id="approvalEmailBody" rows="5"></textarea>
                                         <div class="mt-2">
                                             <small class="text-muted d-block mb-1">Available Placeholders:</small>
                                             <span class="placeholder-badge">{name}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Password Reset OTP Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-shield-lock-fill me-2"></i>Password Reset OTP Email</h6>
+                                    <div class="mb-3">
+                                        <label for="otpEmailSubject" class="form-label">OTP Email Subject</label>
+                                        <input type="text" class="form-control" th:field="*{otpEmailSubject}" id="otpEmailSubject">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="otpEmailBody" class="form-label">OTP Email Body</label>
+                                        <textarea class="form-control" th:field="*{otpEmailBody}" id="otpEmailBody" rows="4"></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{otp}</span>
+                                            <span class="placeholder-badge">{expiry_minutes}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Admin Onboarding Alert Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-bell-fill me-2"></i>Admin Onboarding Alert Email</h6>
+                                    <div class="mb-3">
+                                        <label for="adminAlertEmailSubject" class="form-label">Alert Email Subject</label>
+                                        <input type="text" class="form-control" th:field="*{adminAlertEmailSubject}" id="adminAlertEmailSubject">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="adminAlertEmailBody" class="form-label">Alert Email Body</label>
+                                        <textarea class="form-control" th:field="*{adminAlertEmailBody}" id="adminAlertEmailBody" rows="5"></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                            <span class="placeholder-badge">{email}</span>
+                                            <span class="placeholder-badge">{summary}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leave Approval Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-calendar-check-fill me-2"></i>Leave Approval Email</h6>
+                                    <div class="mb-3">
+                                        <label for="leaveApprovedEmailSubject" class="form-label">Leave Approved Subject</label>
+                                        <input type="text" class="form-control" th:field="*{leaveApprovedEmailSubject}" id="leaveApprovedEmailSubject">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="leaveApprovedEmailBody" class="form-label">Leave Approved Body</label>
+                                        <textarea class="form-control" th:field="*{leaveApprovedEmailBody}" id="leaveApprovedEmailBody" rows="4"></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                            <span class="placeholder-badge">{leave_type}</span>
+                                            <span class="placeholder-badge">{from_date}</span>
+                                            <span class="placeholder-badge">{to_date}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Leave Rejection Section -->
+                                <div class="border rounded-4 p-4 mb-4">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-calendar-x-fill me-2"></i>Leave Rejection Email</h6>
+                                    <div class="mb-3">
+                                        <label for="leaveRejectedEmailSubject" class="form-label">Leave Rejected Subject</label>
+                                        <input type="text" class="form-control" th:field="*{leaveRejectedEmailSubject}" id="leaveRejectedEmailSubject">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="leaveRejectedEmailBody" class="form-label">Leave Rejected Body</label>
+                                        <textarea class="form-control" th:field="*{leaveRejectedEmailBody}" id="leaveRejectedEmailBody" rows="4"></textarea>
+                                        <div class="mt-2">
+                                            <small class="text-muted d-block mb-1">Available Placeholders:</small>
+                                            <span class="placeholder-badge">{name}</span>
+                                            <span class="placeholder-badge">{leave_type}</span>
+                                            <span class="placeholder-badge">{from_date}</span>
+                                            <span class="placeholder-badge">{to_date}</span>
                                         </div>
                                     </div>
                                 </div>

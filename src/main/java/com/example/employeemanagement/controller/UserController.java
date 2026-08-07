@@ -86,16 +86,31 @@ public class UserController {
         model.addAttribute("employee", emp);
         model.addAttribute("companyDetails", emp.getCompanyDetails());
 
+        LocalDate joiningDate = (emp.getCompanyDetails() != null) ? emp.getCompanyDetails().getJoiningDate() : null;
+
         List<Attendance> attendanceList;
 
         if (fromDate != null && toDate != null) {
             LocalDate start = LocalDate.parse(fromDate);
             LocalDate end = LocalDate.parse(toDate);
-            attendanceList = attendanceService.findByEmployeeIdAndDateRange(id, start, end);
+            if (joiningDate != null && start.isBefore(joiningDate)) {
+                start = joiningDate;
+            }
+            if (start.isAfter(end)) {
+                attendanceList = new java.util.ArrayList<>();
+            } else {
+                attendanceList = attendanceService.findByEmployeeIdAndDateRange(id, start, end);
+            }
             model.addAttribute("fromDate", start);
             model.addAttribute("toDate", end);
         } else {
             attendanceList = attendanceService.findByEmployeeId(id);
+            if (joiningDate != null) {
+                final LocalDate doj = joiningDate;
+                attendanceList = attendanceList.stream()
+                        .filter(a -> a.getAttendanceDate() != null && !a.getAttendanceDate().isBefore(doj))
+                        .collect(java.util.stream.Collectors.toList());
+            }
         }
 
         model.addAttribute("attendanceList", attendanceList);

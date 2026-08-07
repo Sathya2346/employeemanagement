@@ -48,9 +48,7 @@
             <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
                 <div class="container-fluid d-flex justify-content-end align-items-center">
                     <div class="d-lg-flex align-items-center">
-                        <img th:if="${employee.base64Image != null}"
-                            th:src="'data:image/jpeg;base64,' + ${employee.base64Image}" class="avatarLogo"
-                            alt="profilePic">
+                        <img th:src="${employee.profileImageSrc}" class="avatarLogo" alt="profilePic">
                     </div>
                 </div>
             </nav>
@@ -64,7 +62,7 @@
                 </div>
                 <div class="row">
                     <!-- Employee Form -->
-                    <div class="col col-lg-8 card shadow-sm border-0">
+                    <div class="col-12 col-lg-8 card shadow-sm border-0 mb-4 mb-lg-0">
                         <div class="card-body">
                             <!-- Read-Only View -->
                             <div class="row g-3" th:object="${employee}">
@@ -212,9 +210,7 @@
                     <div class="col col-lg-4">
                         <div class="profile-card" th:object="${employee}">
                             <div class="profile-header"></div>
-                            <img th:if="${employee.base64Image != null}"
-                                th:src="'data:image/jpeg;base64,' + ${employee.base64Image}" class="profile-img"
-                                alt="profilePic">
+                            <img th:src="${employee.profileImageSrc}" class="profile-img" alt="profilePic">
                             <div class="profile-body">
                                 <h5 th:text="*{firstname + ' ' + lastname}"></h5>
                                 <p th:text="*{companyDetails.designation}"></p>

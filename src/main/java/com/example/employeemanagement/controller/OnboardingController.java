@@ -78,26 +78,80 @@ public class OnboardingController {
 
         Long employeeId = (Long) session.getAttribute("employeeId");
         if (employeeId != null) {
-            if (photoFile != null && !photoFile.isEmpty()) details.setPhotoData(photoFile.getBytes());
-            if (aadharFile != null && !aadharFile.isEmpty()) details.setAadharData(aadharFile.getBytes());
-            if (panFile != null && !panFile.isEmpty()) details.setPanData(panFile.getBytes());
-            if (mark10thFile != null && !mark10thFile.isEmpty()) details.setMark10thData(mark10thFile.getBytes());
-            if (mark12thFile != null && !mark12thFile.isEmpty()) details.setMark12thData(mark12thFile.getBytes());
-            if (sem1File != null && !sem1File.isEmpty()) details.setSem1Data(sem1File.getBytes());
-            if (sem2File != null && !sem2File.isEmpty()) details.setSem2Data(sem2File.getBytes());
-            if (sem3File != null && !sem3File.isEmpty()) details.setSem3Data(sem3File.getBytes());
-            if (sem4File != null && !sem4File.isEmpty()) details.setSem4Data(sem4File.getBytes());
-            if (sem5File != null && !sem5File.isEmpty()) details.setSem5Data(sem5File.getBytes());
-            if (sem6File != null && !sem6File.isEmpty()) details.setSem6Data(sem6File.getBytes());
-            if (sem7File != null && !sem7File.isEmpty()) details.setSem7Data(sem7File.getBytes());
-            if (sem8File != null && !sem8File.isEmpty()) details.setSem8Data(sem8File.getBytes());
-            if (transferCertFile != null && !transferCertFile.isEmpty()) details.setTransferCertData(transferCertFile.getBytes());
-            if (provisionalCertFile != null && !provisionalCertFile.isEmpty()) details.setProvisionalCertData(provisionalCertFile.getBytes());
-            if (courseCompletionFile != null && !courseCompletionFile.isEmpty()) details.setCourseCompletionData(courseCompletionFile.getBytes());
+            if (photoFile != null && !photoFile.isEmpty()) details.setPhotoData(compressImage(photoFile.getBytes()));
+            if (aadharFile != null && !aadharFile.isEmpty()) details.setAadharData(compressImage(aadharFile.getBytes()));
+            if (panFile != null && !panFile.isEmpty()) details.setPanData(compressImage(panFile.getBytes()));
+            if (mark10thFile != null && !mark10thFile.isEmpty()) details.setMark10thData(compressImage(mark10thFile.getBytes()));
+            if (mark12thFile != null && !mark12thFile.isEmpty()) details.setMark12thData(compressImage(mark12thFile.getBytes()));
+            if (sem1File != null && !sem1File.isEmpty()) details.setSem1Data(compressImage(sem1File.getBytes()));
+            if (sem2File != null && !sem2File.isEmpty()) details.setSem2Data(compressImage(sem2File.getBytes()));
+            if (sem3File != null && !sem3File.isEmpty()) details.setSem3Data(compressImage(sem3File.getBytes()));
+            if (sem4File != null && !sem4File.isEmpty()) details.setSem4Data(compressImage(sem4File.getBytes()));
+            if (sem5File != null && !sem5File.isEmpty()) details.setSem5Data(compressImage(sem5File.getBytes()));
+            if (sem6File != null && !sem6File.isEmpty()) details.setSem6Data(compressImage(sem6File.getBytes()));
+            if (sem7File != null && !sem7File.isEmpty()) details.setSem7Data(compressImage(sem7File.getBytes()));
+            if (sem8File != null && !sem8File.isEmpty()) details.setSem8Data(compressImage(sem8File.getBytes()));
+            if (transferCertFile != null && !transferCertFile.isEmpty()) details.setTransferCertData(compressImage(transferCertFile.getBytes()));
+            if (provisionalCertFile != null && !provisionalCertFile.isEmpty()) details.setProvisionalCertData(compressImage(provisionalCertFile.getBytes()));
+            if (courseCompletionFile != null && !courseCompletionFile.isEmpty()) details.setCourseCompletionData(compressImage(courseCompletionFile.getBytes()));
 
             detailsService.submitDetails(details, employeeId);
         }
         return "redirect:/user/onboarding";
+    }
+
+    private byte[] compressImage(byte[] imageBytes) {
+        if (imageBytes == null || imageBytes.length == 0) return imageBytes;
+        try {
+            java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
+            java.awt.image.BufferedImage originalImage = javax.imageio.ImageIO.read(bais);
+            if (originalImage == null) {
+                return imageBytes;
+            }
+
+            int maxWidth = 900;
+            int maxHeight = 900;
+            int width = originalImage.getWidth();
+            int height = originalImage.getHeight();
+
+            double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+            if (scale > 1.0) scale = 1.0;
+
+            int newWidth = Math.max(1, (int) (width * scale));
+            int newHeight = Math.max(1, (int) (height * scale));
+
+            java.awt.image.BufferedImage resizedImage = new java.awt.image.BufferedImage(
+                newWidth, newHeight, java.awt.image.BufferedImage.TYPE_INT_RGB
+            );
+
+            java.awt.Graphics2D g2d = resizedImage.createGraphics();
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+            g2d.dispose();
+
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            java.util.Iterator<javax.imageio.ImageWriter> writers = javax.imageio.ImageIO.getImageWritersByFormatName("jpg");
+            if (writers.hasNext()) {
+                javax.imageio.ImageWriter writer = writers.next();
+                javax.imageio.stream.ImageOutputStream ios = javax.imageio.ImageIO.createImageOutputStream(baos);
+                writer.setOutput(ios);
+
+                javax.imageio.ImageWriteParam param = writer.getDefaultWriteParam();
+                if (param.canWriteCompressed()) {
+                    param.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                    param.setCompressionQuality(0.65f);
+                }
+
+                writer.write(null, new javax.imageio.IIOImage(resizedImage, null, null), param);
+                writer.dispose();
+                ios.close();
+            } else {
+                javax.imageio.ImageIO.write(resizedImage, "jpg", baos);
+            }
+            return baos.toByteArray();
+        } catch (Exception e) {
+            return imageBytes;
+        }
     }
 
     @GetMapping("/admin/onboarding/pending")

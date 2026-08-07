@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 
-@SpringBootTest
+@SpringBootTest(classes = EmployeemanagementApplication.class)
 @ActiveProfiles("test")
 @Transactional
 public class CrudOperationsTest {

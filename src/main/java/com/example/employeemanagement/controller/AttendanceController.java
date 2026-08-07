@@ -39,7 +39,17 @@ public class AttendanceController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private LocalDate parseDateFlexible(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        dateStr = dateStr.trim();
+        String[] formats = {"yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "dd-MM-yyyy", "MM-dd-yyyy"};
+        for (String fmt : formats) {
+            try {
+                return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(fmt));
+            } catch (Exception ignored) {}
+        }
+        return LocalDate.parse(dateStr);
+    }
 
     // ✅ 1. Save or Update Attendance
     @PostMapping("/save/{employeeId}")
@@ -86,7 +96,7 @@ public class AttendanceController {
             return ResponseEntity.status(403).body("Unauthorized");
         }
         try {
-            LocalDate targetDate = LocalDate.parse(date, DATE_FORMATTER);
+            LocalDate targetDate = parseDateFlexible(date);
             Optional<Attendance> recordOpt = attendanceService.getByDate(employeeId, targetDate);
 
             return ResponseEntity.ok(recordOpt.map(List::of).orElse(List.of()));
@@ -109,11 +119,21 @@ public class AttendanceController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(List.of());
         }
         try {
-            LocalDate from = LocalDate.parse(fromDate, DATE_FORMATTER);
-            LocalDate to = LocalDate.parse(toDate, DATE_FORMATTER);
+            LocalDate from = parseDateFlexible(fromDate);
+            LocalDate to = parseDateFlexible(toDate);
+
+            com.example.employeemanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+            LocalDate joiningDate = (employee != null && employee.getCompanyDetails() != null) ? employee.getCompanyDetails().getJoiningDate() : null;
+            if (joiningDate != null && from != null && from.isBefore(joiningDate)) {
+                from = joiningDate;
+            }
+
+            if (from != null && to != null && from.isAfter(to)) {
+                return ResponseEntity.ok(List.of());
+            }
 
             List<Attendance> records = attendanceService.getByDateRange(employeeId, from, to);
-            return ResponseEntity.ok(records);
+            return ResponseEntity.ok(records != null ? records : List.of());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,19 +150,39 @@ public class AttendanceController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body(List.of());
         }
         try {
+            com.example.employeemanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+            LocalDate joiningDate = (employee != null && employee.getCompanyDetails() != null) ? employee.getCompanyDetails().getJoiningDate() : null;
+
             LocalDate today = LocalDate.now(AppConstants.IST);
             LocalDate fiveDaysAgo = today.minusDays(4);
 
-            List<Attendance> records = attendanceService.getByDateRange(employeeId, fiveDaysAgo, today);
+            // Respect Joining Date: do not display attendance rows before joining date
+            LocalDate startRange = fiveDaysAgo;
+            if (joiningDate != null && joiningDate.isAfter(fiveDaysAgo)) {
+                startRange = joiningDate;
+            }
+
+            if (startRange.isAfter(today)) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            List<Attendance> records = attendanceService.getByDateRange(employeeId, startRange, today);
             if (records == null) records = new ArrayList<>();
+
+            // Filter out any stray records prior to joining date
+            if (joiningDate != null) {
+                final LocalDate doj = joiningDate;
+                records = records.stream()
+                        .filter(r -> r.getAttendanceDate() != null && !r.getAttendanceDate().isBefore(doj))
+                        .collect(Collectors.toList());
+            }
 
             // Map existing dates
             Map<LocalDate, Attendance> recordMap = records.stream()
                     .collect(Collectors.toMap(Attendance::getAttendanceDate, a -> a, (a1, a2) -> a1));
 
-            // Add missing days as Absent (not saved to DB)
-            for (int i = 0; i < 5; i++) {
-                LocalDate d = fiveDaysAgo.plusDays(i);
+            // Add missing days as Absent starting from startRange up to today
+            for (LocalDate d = startRange; !d.isAfter(today); d = d.plusDays(1)) {
                 recordMap.computeIfAbsent(d, date -> {
                     Attendance abs = new Attendance();
                     abs.setAttendanceDate(date);
@@ -185,6 +225,41 @@ public class AttendanceController {
     public ResponseEntity<String> breakEnd(@RequestBody Map<String, String> body) {
         attendanceService.endBreak(body.get("time"));
         return ResponseEntity.ok("Break End Recorded");
+    }
+
+    @PostMapping("/meeting/start")
+    public ResponseEntity<String> meetingStart() {
+        attendanceService.startMeeting();
+        return ResponseEntity.ok("Meeting Start Recorded");
+    }
+
+    @PostMapping("/meeting/end")
+    public ResponseEntity<String> meetingEnd() {
+        attendanceService.endMeeting();
+        return ResponseEntity.ok("Meeting End Recorded");
+    }
+
+    // Returns whether the employee is checked in without checkout (for logout guard)
+    @GetMapping("/checkin-status/{employeeId}")
+    public ResponseEntity<?> getCheckinStatus(
+            @PathVariable Long employeeId,
+            org.springframework.security.core.Authentication authentication) {
+        if (!isAuthorized(employeeId, authentication)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+        }
+        boolean checkedIn = attendanceService.isCheckedInWithoutCheckout(employeeId);
+        return ResponseEntity.ok(Map.of("checkedIn", checkedIn));
+    }
+
+    // ✅ Returns current activity status for live dashboard badge updates
+    @GetMapping("/status/{employeeId}")
+    public ResponseEntity<?> getEmployeeActivityStatus(@PathVariable Long employeeId) {
+        return employeeRepository.findById(employeeId)
+            .map(emp -> ResponseEntity.ok(Map.of(
+                "activityStatus", emp.getActivityStatus() != null ? emp.getActivityStatus() : "Working",
+                "overallStatus", emp.getOverallStatus() != null ? emp.getOverallStatus() : ""
+            )))
+            .orElse(ResponseEntity.notFound().build());
     }
 
     // ✅ 5. Fetch all attendance records (for admin dashboard / list)

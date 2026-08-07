@@ -12,7 +12,7 @@ import com.example.employeemanagement.repository.EmployeeDetailsRepository;
 import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDate;
 
-@SpringBootTest
+@SpringBootTest(classes = EmployeemanagementApplication.class)
 @ActiveProfiles("test")
 public class OnboardingTest {
 

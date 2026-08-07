@@ -17,4 +17,5 @@ public interface NotificationService {
     void removePendingLeaveNotification(Long referenceId);
     void markNotificationsAsRead(String recipient, String type);
     Notification getNotificationById(Long id);
+    void updateLeaveStatusOfNotifications(Long referenceId, String status);
 }

@@ -117,32 +117,44 @@ a {
     color: #FF7423;
 }
 
+.btn-month,
 .btn-calendar {
     background-color: #23d2aa;
-    color: white;
+    color: #ffffff;
     border-radius: 8px;
+    padding: 6px 14px;
     border: none;
-    padding: 8px 12px;
     transition: all 0.3s ease;
 }
 
-.btn-calendar:hover {
-    background-color: #60d6ba;
-    transform: scale(1.05);
+.btn-month:hover,
+.btn-calendar:hover,
+#filterBtn:hover,
+#filterAttendanceBtn:hover,
+#filterLeaveBtn:hover {
+    background-color: #50d2b3 !important;
+    color: #ffffff !important;
 }
 
-.btn-download {
-    background-color: #FF7423;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    transition: all 0.3s ease;
+.btn-download,
+#pdfBtn,
+#downloadPdfBtn,
+#downloadAttendanceBtn,
+#downloadLeaveBtn {
+    background-color: #FF7423 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-download:hover {
-    background-color: #f78543;
-    transform: translateY(-2px);
+.btn-download:hover,
+#pdfBtn:hover,
+#downloadPdfBtn:hover,
+#downloadAttendanceBtn:hover,
+#downloadLeaveBtn:hover {
+    background-color: #e65c0d !important;
+    color: #ffffff !important;
 }
 
 /* Cards Section */
@@ -292,6 +304,7 @@ td {
         .status.approved { background: #d1e7dd; color: #0f5132; }
         .status.rejected { background: #f8d7da; color: #842029; }
         .status.pending  { background: #fff3cd; color: #856404; }
+        .status.cancelled { background: #e2e3e5; color: #41464b; }
         .action-icons i {
             cursor: pointer;
             margin: 0 6px;
@@ -343,8 +356,9 @@ td {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {

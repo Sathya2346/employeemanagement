@@ -16,7 +16,9 @@ import com.example.employeemanagement.repository.EmployeeRepository;
 
 import java.time.LocalDateTime;
 
-@SpringBootTest
+import com.example.employeemanagement.EmployeemanagementApplication;
+
+@SpringBootTest(classes = EmployeemanagementApplication.class)
 @ActiveProfiles("test")
 @Transactional
 public class EmployeeServiceTest {

@@ -39,7 +39,7 @@
                         class="bi bi-clock-history me-2"></i>Hourly Report</a>
                 <a th:href="@{/user/notification/{id}(id=${employee.id})}" class="nav-link text-white"><i
                         class="bi bi-bell me-2"></i>Notification</a>
-                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                <a th:href="@{/logout}" id="logoutLink" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
             </nav>
         </div>
 
@@ -49,25 +49,35 @@
             <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
-            <!-- Header -->
-            <div class="navbar-custom fade-in">
-                <div class="navbar-left">
-                </div>
+            <!-- Navbar -->
+            <div class="navbar-custom mb-4 d-flex justify-content-between align-items-center">
+                <h3><i class="bi bi-calendar me-2"></i> Leave Management</h3>
+            </div>
 
-                <div class="navbar-right">
-                    <input type="date" id="fromDateDownload" class="form-control d-inline w-auto mx-auto" />
-                    <input type="date" id="toDateDownload" class="form-control d-inline w-auto mx-auto" />
-                    <button class="btn btn-download" id="downloadLeaveBtn">
-                        <i class="bi bi-download"></i> Download
-                    </button>
+            <!-- Filters (Same as Admin Panel) -->
+            <div class="card p-4 shadow-sm mb-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5 col-md-6">
+                        <label for="fromDateDownload" class="fw-semibold">From Date</label>
+                        <input type="date" id="fromDateDownload" class="form-control">
+                    </div>
+
+                    <div class="col-lg-5 col-md-6">
+                        <label for="toDateDownload" class="fw-semibold">To Date</label>
+                        <input type="date" id="toDateDownload" class="form-control">
+                    </div>
+
+                    <div class="col-lg-2 col-md-12 d-flex gap-2">
+                        <button id="filterLeaveBtn" class="btn btn-month w-100" title="Filter Records"><i class="bi bi-search me-1"></i>Filter</button>
+                        <button id="downloadLeaveBtn" class="btn btn-download w-100" title="Download Report"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                    </div>
                 </div>
             </div>
 
             <!-- Info Cards -->
             <div class="info-cards mb-3">
                 <div class="info-card card-green">
-                    <img th:if="${employee.base64Image != null}"
-                        th:src="'data:image/jpeg;base64,' + ${employee.base64Image}" alt="Profile">
+                    <img th:src="${employee.profileImageSrc}" alt="Profile">
                     <div>
                         <h6>Employee Name</h6>
                         <p class="mb-0">
@@ -143,6 +153,7 @@
                                 <th>Days</th>
                                 <th>Approved By</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -152,11 +163,19 @@
                                 <td th:text="${leave.leaveFromDate}"></td>
                                 <td th:text="${leave.leaveToDate}"></td>
                                 <td th:text="${leave.leaveDays}"></td>
-                                <td th:text="${leave.leaveApprovedBy}"></td>
+                                <td th:text="${leave.leaveApprovedBy != null ? leave.leaveApprovedBy : '-'}"></td>
                                 <td>
                                     <span class="status" th:classappend="${#strings.toLowerCase(leave.leaveStatus)}"
                                         th:text="${leave.leaveStatus}">
                                     </span>
+                                </td>
+                                <td class="action-icons">
+                                    <button th:if="${leave.leaveStatus == 'Pending' || leave.leaveStatus == 'Approved'}"
+                                            class="btn btn-sm btn-outline-danger cancel-btn px-2.5 py-1 fw-medium shadow-sm"
+                                            th:data-id="${leave.id}" title="Cancel Leave Request">
+                                        <i class="bi bi-trash3-fill me-1"></i>Cancel
+                                    </button>
+                                    <span th:if="${leave.leaveStatus != 'Pending' && leave.leaveStatus != 'Approved'}" class="text-muted fs-7">-</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -236,6 +255,7 @@
     <!-- External JS -->
     <script th:src="@{/js/userLeave.js}"></script>
     <script th:src="@{/js/idleTracker.js}"></script>
+    <script th:src="@{/js/userLogoutGuard.js}"></script>
 </body>
 
 </html>

@@ -28,16 +28,16 @@ public class Attendance {
 
     private String status; // Present / Absent
 
-    @JsonFormat(pattern = "hh:mm:ss a", timezone = "Asia/Kolkata")
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalTime checkInTime;
 
-    @JsonFormat(pattern = "hh:mm:ss a", timezone = "Asia/Kolkata")
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalTime checkOutTime;
 
-    @JsonFormat(pattern = "hh:mm:ss a", timezone = "Asia/Kolkata")
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalTime breakStart;
 
-    @JsonFormat(pattern = "hh:mm:ss a", timezone = "Asia/Kolkata")
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalTime breakEnd;
 
     private String username;
@@ -48,14 +48,23 @@ public class Attendance {
     private Long totalBreakTime;
     private Boolean leaveApproved;
     private LocalTime idleStartTime;
+    private Long totalMeetingTime; // in minutes
 
     private Boolean isLateIn = false;
     private Boolean earlyOut = false;
 
+    private Boolean earlyIn = false;
     private Boolean earlyCheckIn = false;
     private Boolean lateCheckIn = false;
     private Boolean earlyCheckOut = false;
     private Boolean lateCheckOut = false;
+    private Long earlyInMinutes = 0L;
+
+    public Boolean getEarlyIn() { return earlyIn; }
+    public void setEarlyIn(Boolean earlyIn) { this.earlyIn = earlyIn; }
+
+    public Long getEarlyInMinutes() { return earlyInMinutes; }
+    public void setEarlyInMinutes(Long earlyInMinutes) { this.earlyInMinutes = earlyInMinutes; }
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -105,6 +114,9 @@ public class Attendance {
 
     public LocalTime getIdleStartTime() { return idleStartTime; }
     public void setIdleStartTime(LocalTime idleStartTime) { this.idleStartTime = idleStartTime; }
+
+    public Long getTotalMeetingTime() { return totalMeetingTime; }
+    public void setTotalMeetingTime(Long totalMeetingTime) { this.totalMeetingTime = totalMeetingTime; }
 
     @com.fasterxml.jackson.annotation.JsonProperty("lateIn")
     public Boolean getLateIn() { return isLateIn; }

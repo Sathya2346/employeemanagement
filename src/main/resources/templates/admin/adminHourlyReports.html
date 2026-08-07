@@ -43,30 +43,31 @@
       <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
         <i class="bi bi-list"></i>
       </button>
-      <!-- Header -->
-      <div class="navbar-custom fade-in">
-        <div class="navbar-left">
-          <!-- ✅ Add data attributes for JS -->
-          <h4 id="employeeInfo" th:data-name="${employee.firstname + ' ' + employee.lastname}"
-            th:data-id="${employee.id}">
-            Hourly Reports - <span th:text="${employee.firstname + ' ' + employee.lastname}">John Doe</span>
-            <small class="text-muted ms-2">(ID: <span th:text="${employee.id}">101</span>)</small>
-          </h4>
-        </div>
+      <!-- Navbar Header -->
+      <div class="navbar-custom mb-4 d-flex justify-content-between align-items-center">
+        <h4 id="employeeInfo" th:data-name="${employee.firstname + ' ' + employee.lastname}" th:data-id="${employee.id}" class="mb-0 fw-bold text-dark">
+          <i class="bi bi-list-check me-2 text-primary"></i>Hourly Reports - <span th:text="${employee.firstname + ' ' + employee.lastname}">John Doe</span>
+          <small class="text-muted ms-2">(ID: <span th:text="${employee.id}">101</span>)</small>
+        </h4>
+      </div>
 
-        <div class="navbar-right">
-          <!-- 📅 Date Range Filter -->
-          <div class="d-sm-flex align-items-center mx-3 my-2 my-sm-0">
-            <label class="me-2 fw-semibold">From:</label>
-            <input type="date" id="fromDate" class="form-control form-control-sm me-3">
-            <label class="me-2 fw-semibold">To:</label>
-            <input type="date" id="toDate" class="form-control form-control-sm me-3">
+      <!-- Filters (Same as Leave & Attendance Pages) -->
+      <div class="card p-4 shadow-sm mb-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-lg-5 col-md-6">
+            <label for="fromDate" class="fw-semibold">From Date</label>
+            <input type="date" id="fromDate" class="form-control">
           </div>
 
-          <!-- Calendar & Download Buttons -->
-          <button id="filterBtn" title="Filter" class="btn-calendar me-2"><i class="bi bi-funnel"></i> Filter</button>
-          <button id="downloadPdfBtn" title="Download PDF Report" class="btn-download"
-            th:disabled="${#lists.isEmpty(reports)}">Download</button>
+          <div class="col-lg-5 col-md-6">
+            <label for="toDate" class="fw-semibold">To Date</label>
+            <input type="date" id="toDate" class="form-control">
+          </div>
+
+          <div class="col-lg-2 col-md-12 d-flex gap-2">
+            <button id="filterBtn" class="btn btn-month w-100"><i class="bi bi-search me-1"></i>Filter</button>
+            <button id="downloadPdfBtn" class="btn btn-download w-100" th:disabled="${#lists.isEmpty(reports)}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+          </div>
         </div>
       </div>
 
@@ -75,18 +76,18 @@
         <table class="table table-borderless align-middle mb-0" id="reportTable">
           <thead class="table-light">
             <tr>
-              <th>Time Slot</th>
-              <th>Task Description</th>
-              <th>Status</th>
-              <th>Submitted At</th>
+              <th class="text-nowrap">Time Slot</th>
+              <th class="task-desc-cell">Task Description</th>
+              <th class="text-nowrap">Status</th>
+              <th class="text-nowrap">Submitted At</th>
             </tr>
           </thead>
           <tbody>
             <tr th:each="report : ${reports}">
-              <td th:text="${report.timeSlot}">10:00 - 11:00</td>
-              <td th:text="${report.taskDescription}">Developed Employee Module</td>
-              <td th:text="${report.status}">In Progress</td>
-              <td th:text="${#temporals.format(report.createdAt, 'yyyy-MM-dd HH:mm')}">2025-11-03 14:00</td>
+              <td class="text-nowrap" th:text="${report.timeSlot}">10:00 - 11:00</td>
+              <td class="task-desc-cell" th:text="${report.taskDescription}">Developed Employee Module</td>
+              <td class="text-nowrap" th:text="${report.status}">In Progress</td>
+              <td class="text-nowrap" th:text="${#temporals.format(report.createdAt, 'yyyy-MM-dd HH:mm')}">2025-11-03 14:00</td>
             </tr>
             <tr th:if="${#lists.isEmpty(reports)}">
               <td colspan="4" class="text-center text-muted">No reports found</td>

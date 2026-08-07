@@ -89,17 +89,46 @@ a {
     width: 50%;
 }
 /* ===== Buttons ===== */
-.btn-download {
-    background-color: #FF7423;
-    color: #fff;
-    border-radius: 8px;
-    padding: 6px 14px;
-    border: none;
-    transition: 0.3s;
+.btn-month,
+.btn-calendar,
+#filterBtn,
+#filterAttendanceBtn,
+#filterLeaveBtn {
+    background-color: #23d2aa !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-download:hover {
-    background-color: #d94f21;
+.btn-month:hover,
+.btn-calendar:hover,
+#filterBtn:hover,
+#filterAttendanceBtn:hover,
+#filterLeaveBtn:hover {
+    background-color: #50d2b3 !important;
+    color: #ffffff !important;
+}
+
+.btn-download,
+#pdfBtn,
+#downloadPdfBtn,
+#downloadAttendanceBtn,
+#downloadLeaveBtn {
+    background-color: #FF7423 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-download:hover,
+#pdfBtn:hover,
+#downloadPdfBtn:hover,
+#downloadAttendanceBtn:hover,
+#downloadLeaveBtn:hover {
+    background-color: #e65c0d !important;
+    color: #ffffff !important;
 }
 /* ==== Notification ==== */
 .notification-wrapper {
@@ -151,8 +180,9 @@ a {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {
@@ -220,15 +250,21 @@ a {
 }
 
 th {
-    background-color: #adf0da;
+    background-color: #f8fafc;
     font-weight: 600;
     white-space: nowrap;
 }
 
 td {
-    background-color: #a4cdc0;
-    white-space: nowrap;
+    background-color: #ffffff;
     vertical-align: middle;
+}
+
+.task-desc-cell {
+    max-width: 400px;
+    min-width: 200px;
+    white-space: normal !important;
+    word-break: break-word;
 }
 
 .btn-calendar {

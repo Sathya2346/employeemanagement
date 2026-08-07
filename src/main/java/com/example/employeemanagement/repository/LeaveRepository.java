@@ -39,10 +39,13 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
                                           @Param("status") String status,
                                           @Param("from") LocalDate from,
                                           @Param("to") LocalDate to);
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(l) > 0 FROM Leave l WHERE l.employee.id = :empId AND l.leaveStatus <> 'Rejected' " +
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(l) > 0 FROM Leave l WHERE l.employee.id = :empId AND l.leaveStatus NOT IN ('Rejected', 'Cancelled') " +
            "AND ((l.leaveFromDate <= :to AND l.leaveToDate >= :from))")
     boolean existsOverlappingLeave(@Param("empId") Long empId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(l) > 0 FROM Leave l WHERE l.employee.id = :empId AND l.leaveStatus = 'Approved' AND :date BETWEEN l.leaveFromDate AND l.leaveToDate")
     boolean isEmployeeOnLeave(@Param("empId") Long empId, @Param("date") LocalDate date);
+
+    @org.springframework.data.jpa.repository.Query("SELECT l FROM Leave l WHERE l.employee.id = :empId AND l.leaveStatus IN ('Approved', 'Pending') AND :date BETWEEN l.leaveFromDate AND l.leaveToDate")
+    List<Leave> findActiveLeavesOnDate(@Param("empId") Long empId, @Param("date") LocalDate date);
 }

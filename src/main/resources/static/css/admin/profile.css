@@ -164,6 +164,11 @@ a {
     font-size: 0; /* hide text if you want just a dot, but user asked to show status */
     z-index: 5;
 }
+
+.bg-purple {
+    background-color: #7C3AED !important;
+    color: #ffffff !important;
+}
 .view-btn {
     background: #FF7423;
     color: #fff;
@@ -274,8 +279,9 @@ a {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {

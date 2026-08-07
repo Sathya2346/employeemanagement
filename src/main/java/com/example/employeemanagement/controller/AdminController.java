@@ -52,7 +52,10 @@ public class AdminController {
 
     @GetMapping("/redirectAfterLogin")
     public String redirectAfterLogin(Authentication authentication, HttpSession session, Model model) {
-        if (authentication == null) return "redirect:/login";
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            System.err.println("Authentication failed or null in redirectAfterLogin");
+            return "redirect:/login?error=true";
+        }
         
         String username = authentication.getName();
         java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = authentication.getAuthorities();

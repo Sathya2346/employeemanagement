@@ -1,5 +1,4 @@
-// /static/js/leave.js
-document.addEventListener("DOMContentLoaded", async () => {
+const initAdminLeave = async () => {
     console.log("✅ leave.js loaded successfully");
 
     const getISTDateString = (date = new Date()) => {
@@ -175,7 +174,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
     }
-});
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAdminLeave);
+} else {
+    initAdminLeave();
+}
 
 // 🔹 Load Summary Cards
 async function loadLeaveSummary() {

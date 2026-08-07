@@ -4,16 +4,19 @@ function sideNav() {
     const sidebar = document.getElementById('sidebar');
     const closeSidebar = document.getElementById('closeSidebar');
 
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.add('active-sidebar');
-    });
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('active-sidebar');
+        });
+    }
 
-    closeSidebar.addEventListener('click', () => {
-        sidebar.classList.remove('active-sidebar');
-    });
+    if (closeSidebar && sidebar) {
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active-sidebar');
+        });
+    }
 }
-sideNav();
-document.addEventListener("DOMContentLoaded", async () => {
+const initAdminAttendance = async () => {
     // ==============================
     // ✅ IST HELPERS
     // ==============================
@@ -29,23 +32,55 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    function parseTimeToMs(timeStr) {
+        if (!timeStr || timeStr === "--:--") return 0;
+        const isPM = /pm/i.test(timeStr);
+        const isAM = /am/i.test(timeStr);
+        const cleanStr = timeStr.replace(/(am|pm)/i, '').trim();
+        const parts = cleanStr.split(':').map(n => parseInt(n) || 0);
+        let hours = parts[0] || 0;
+        const minutes = parts[1] || 0;
+        const seconds = parts[2] || 0;
+
+        if (isPM && hours < 12) hours += 12;
+        if (isAM && hours === 12) hours = 0;
+
+        return (hours * 3600 + minutes * 60 + seconds) * 1000;
+    }
+
     function formatISTTime(timeStr) {
-        if (!timeStr) return "--:--";
-        return timeStr; // Server now sends "hh:mm:ss a"
+        if (!timeStr || timeStr === "--:--" || timeStr === "-") return "--:--";
+        if (/am|pm/i.test(timeStr)) return timeStr;
+        const parts = timeStr.split(':');
+        if (parts.length < 2) return timeStr;
+        let hours = parseInt(parts[0]);
+        const minutes = parts[1];
+        const seconds = parts[2] ? parts[2].split('.')[0] : '00';
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const strHours = hours < 10 ? '0' + hours : hours;
+        return `${strHours}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    function formatSmartDuration(val) {
+        if (val == null || val <= 0) return "0m 0s";
+        if (val > 100000) {
+            const totalSec = Math.floor(val / 1000);
+            const hrs = Math.floor(totalSec / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            if (hrs === 0) return `${mins}m ${secs}s`;
+            return `${hrs}h ${mins}m ${secs}s`;
+        }
+        const hrs = Math.floor(val / 60);
+        const mins = val % 60;
+        if (hrs === 0) return `${mins}m 0s`;
+        return `${hrs}h ${mins}m 0s`;
     }
 
     function formatDurationMs(ms) {
-        if (!ms || ms < 0) return "0m 0s";
-        const totalSec = Math.floor(ms / 1000);
-        const hrs = Math.floor(totalSec / 3600);
-        const mins = Math.floor((totalSec % 3600) / 60);
-        const secs = totalSec % 60;
-
-        if (hrs === 0) {
-            return `${mins}m ${secs}s`;
-        } else {
-            return `${hrs}h ${mins}m ${secs}s`;
-        }
+        return formatSmartDuration(ms);
     }
 
     function todayIST() {
@@ -60,15 +95,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ==============================
     // ✅ HELPER: Status badge class
     // ==============================
-    function getStatusClass(status) {
-        switch (status) {
-            case "Present": return "bg-success";
-            case "Absent": return "bg-danger";
-            case "Idle": return "bg-warning text-dark";
-            case "Checked Out": return "bg-primary text-white";
-            case "On Break": return "bg-info text-dark";
-            default: return "bg-secondary text-white";
-        }
+    function getStatusBadgeClass(status) {
+        if (!status) return "badge-working";
+        const s = status.toLowerCase();
+        if (s.includes("working")) return "badge-working";
+        if (s.includes("present")) return "badge-present";
+        if (s.includes("break")) return "badge-break";
+        if (s.includes("meeting")) return "badge-meeting";
+        if (s.includes("idle")) return "badge-idle";
+        if (s.includes("leave")) return "badge-leave";
+        if (s.includes("absent")) return "badge-absent";
+        if (s.includes("partial")) return "badge-partial";
+        return "badge-working";
     }
 
     // ==============================
@@ -83,7 +121,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             adminTableBody.innerHTML = "";
 
             data.forEach(a => {
+                const shift = a.employee?.companyDetails?.shiftTiming || "-";
+                let earlyInMs = 0;
+                if (a.earlyInMinutes && a.earlyInMinutes > 0) {
+                    earlyInMs = a.earlyInMinutes * 60000;
+                } else if (a.checkInTime && a.checkInTime !== "--:--" && shift && shift !== "-") {
+                    const match = shift.match(/\(([^-\)]+)/);
+                    if (match) {
+                        const shiftStartStr = match[1].trim();
+                        const shiftStartMs = parseTimeToMs(shiftStartStr);
+                        const checkInMs = parseTimeToMs(a.checkInTime);
+                        if (shiftStartMs > 0 && checkInMs > 0 && checkInMs < shiftStartMs) {
+                            earlyInMs = shiftStartMs - checkInMs;
+                        }
+                    }
+                }
+
                 let remarksHtml = "";
+                if (a.earlyIn || a.earlyCheckIn || earlyInMs > 0) {
+                    const earlyInStr = earlyInMs > 0 ? formatMinutes(Math.floor(earlyInMs / 60000)) : "";
+                    remarksHtml += `<div class="text-info fw-bold">Early Login${earlyInStr ? ' (+' + earlyInStr + ')' : ''}</div>`;
+                }
                 if (a.lateIn || a.isLateIn) {
                     remarksHtml += `<div class="text-danger fw-bold">Late (+${formatMinutes(a.lateMinutes)})</div>`;
                 }
@@ -98,7 +156,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 else if (idleMinutes >= 30) idleClass = "bg-warning text-dark";
 
                 const empName = a.employee ? `${a.employee.firstname} ${a.employee.lastname}` : (a.username || "-");
-                const shift = a.employee?.companyDetails?.shiftTiming || "N/A";
 
                 adminTableBody.innerHTML += `
                 <tr>
@@ -107,12 +164,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <td>${shift}</td>
                     <td>${formatISTTime(a.checkInTime)}</td>
                     <td>${formatDurationMs(a.totalBreakTime)}</td>
+                    <td>${formatMinutes(a.totalMeetingTime || 0)}</td>
                     <td class="${idleClass}">${formatMinutes(idleMinutes)}</td>
                     <td>${formatISTTime(a.checkOutTime)}</td>
                     <td>${formatDurationMs(a.totalWorkTime)}</td>
                     <td>${remarksHtml}</td>
-                    <td class="${a.status === "Present" ? "text-success fw-bold" : "text-danger fw-bold"}">
-                        ${a.status}
+                    <td>
+                        <span class="status-badge ${getStatusBadgeClass(a.status)}">${a.status || 'Working'}</span>
                     </td>
                 </tr>`;
             });
@@ -128,8 +186,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tableBody = document.querySelector("#attendanceTable tbody");
 
     const today = todayIST();
-    toDate.setAttribute("max", today);
-    fromDate.setAttribute("max", today);
+    if (toDate) toDate.setAttribute("max", today);
+    if (fromDate) fromDate.setAttribute("max", today);
 
     // ==============================
     // 🌟 Employee Search
@@ -137,69 +195,88 @@ document.addEventListener("DOMContentLoaded", async () => {
     let employees = [];
     let selectedEmployeeId = null;
 
+    const searchInput = document.getElementById("employeeSearch");
+    const suggestionsList = document.getElementById("employeeSuggestions");
+
     async function loadEmployees() {
         try {
             const res = await fetch("/admin/all");
-            employees = await res.json();
+            if (res.ok) {
+                employees = await res.json();
+            }
         } catch (e) {
             console.error("Error loading employees:", e);
         }
     }
-    await loadEmployees();
+    loadEmployees();
 
-    const searchInput = document.getElementById("employeeSearch");
-    const suggestionsList = document.getElementById("employeeSuggestions");
+    if (searchInput && suggestionsList) {
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.trim().toLowerCase();
+            suggestionsList.innerHTML = "";
 
-    searchInput.addEventListener("input", () => {
-        const query = searchInput.value.toLowerCase();
-        suggestionsList.innerHTML = "";
-
-        if (!query) {
-            suggestionsList.style.display = "none";
-            selectedEmployeeId = null;
-            return;
-        }
-
-        const filtered = employees.filter(emp => {
-            const fullName = `${emp.firstname} ${emp.lastname}`.toLowerCase();
-            const username = (emp.username || "").toLowerCase();
-            return fullName.includes(query) || username.includes(query);
-        });
-
-        if (!filtered.length) {
-            suggestionsList.style.display = "none";
-            return;
-        }
-
-        filtered.forEach(emp => {
-            const li = document.createElement("li");
-            li.className = "list-group-item list-group-item-action";
-            const designation = emp.companyDetails?.designation || "N/A";
-            li.textContent = `${emp.firstname} ${emp.lastname} (${emp.username} - ${designation})`;
-
-            li.addEventListener("click", () => {
-                searchInput.value = `${emp.firstname} ${emp.lastname} (${emp.username})`;
-                selectedEmployeeId = emp.id;
+            if (!query) {
                 suggestionsList.style.display = "none";
+                selectedEmployeeId = null;
+                return;
+            }
 
-                if (emp.companyDetails?.joiningDate) {
-                    fromDate.value = emp.companyDetails.joiningDate;
-                    fromDate.setAttribute("min", emp.companyDetails.joiningDate);
-                }
-                toDate.value = today;
+            const filtered = employees.filter(emp => {
+                const fn = (emp.firstname || "").toLowerCase();
+                const ln = (emp.lastname || "").toLowerCase();
+                const fullName = `${fn} ${ln}`.trim();
+                const username = (emp.username || "").toLowerCase();
+                const email = (emp.email || "").toLowerCase();
+                const empId = String(emp.id || "");
+                return fn.includes(query) || ln.includes(query) || fullName.includes(query) || username.includes(query) || email.includes(query) || empId.includes(query);
             });
 
-            suggestionsList.appendChild(li);
+            if (!filtered.length) {
+                const noMatchLi = document.createElement("li");
+                noMatchLi.className = "list-group-item text-muted small py-2";
+                noMatchLi.textContent = "No matching employees found";
+                suggestionsList.appendChild(noMatchLi);
+                suggestionsList.style.display = "block";
+                return;
+            }
+
+            filtered.forEach(emp => {
+                const li = document.createElement("li");
+                li.className = "list-group-item list-group-item-action py-2";
+                li.style.cursor = "pointer";
+                const fn = emp.firstname || "";
+                const ln = emp.lastname || "";
+                const displayName = (fn + " " + ln).trim() || emp.username || (`Employee #${emp.id}`);
+                const designation = emp.companyDetails?.designation || emp.designation || "N/A";
+                li.textContent = `${displayName} (${emp.username || emp.email || emp.id} - ${designation})`;
+
+                li.addEventListener("click", () => {
+                    searchInput.value = `${displayName} (${emp.username || emp.id})`;
+                    selectedEmployeeId = emp.id;
+                    suggestionsList.style.display = "none";
+
+                    if (emp.companyDetails?.joiningDate) {
+                        fromDate.value = emp.companyDetails.joiningDate;
+                        fromDate.setAttribute("min", emp.companyDetails.joiningDate);
+                    } else {
+                        fromDate.value = today;
+                    }
+                    toDate.value = today;
+                    // Do NOT auto-trigger filterBtn.click(); wait for user to click Filter button
+                });
+
+                suggestionsList.appendChild(li);
+            });
+
+            suggestionsList.style.display = "block";
         });
 
-        suggestionsList.style.display = "block";
-    });
-
-    document.addEventListener("click", e => {
-        if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
-            suggestionsList.style.display = "none";
-        }
-    });
+        document.addEventListener("click", e => {
+            if (searchInput && suggestionsList && !searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+                suggestionsList.style.display = "none";
+            }
+        });
+    }
 
     // ==============================
     // 🌟 Resolve Selected Employee
@@ -211,44 +288,47 @@ document.addEventListener("DOMContentLoaded", async () => {
             return false;
         }
 
-        // If selectedEmployeeId is set, check if the current input value matches the selected employee
         if (selectedEmployeeId) {
             const currentEmp = employees.find(emp => emp.id === selectedEmployeeId);
             if (currentEmp) {
-                const fullName = `${currentEmp.firstname} ${currentEmp.lastname}`.toLowerCase();
-                const firstName = currentEmp.firstname.toLowerCase();
+                const fn = (currentEmp.firstname || "").toLowerCase();
+                const ln = (currentEmp.lastname || "").toLowerCase();
+                const fullName = `${fn} ${ln}`.trim();
                 const username = (currentEmp.username || "").toLowerCase();
-                const suggestionText = `${currentEmp.firstname} ${currentEmp.lastname} (${currentEmp.username} - ${currentEmp.companyDetails?.designation || "N/A"})`.toLowerCase();
-                const selectedText = `${currentEmp.firstname} ${currentEmp.lastname} (${currentEmp.username})`.toLowerCase();
-                if (fullName === query || firstName === query || username === query || suggestionText === query || selectedText === query || query.includes(firstName) || query.includes(username)) {
+                const email = (currentEmp.email || "").toLowerCase();
+                if (fullName.includes(query) || fn.includes(query) || ln.includes(query) || username.includes(query) || email.includes(query) || query.includes(fn) || query.includes(username)) {
                     return true;
                 }
             }
         }
 
-        // Try to find a match in the employees array
         const matchedEmp = employees.find(emp => {
-            const fullName = `${emp.firstname} ${emp.lastname}`.toLowerCase();
-            const firstName = emp.firstname.toLowerCase();
+            const fn = (emp.firstname || "").toLowerCase();
+            const ln = (emp.lastname || "").toLowerCase();
+            const fullName = `${fn} ${ln}`.trim();
             const username = (emp.username || "").toLowerCase();
-            const suggestionText = `${emp.firstname} ${emp.lastname} (${emp.username} - ${emp.companyDetails?.designation || "N/A"})`.toLowerCase();
-            const selectedText = `${emp.firstname} ${emp.lastname} (${emp.username})`.toLowerCase();
-            return fullName === query || firstName === query || username === query || suggestionText === query || selectedText === query;
+            const email = (emp.email || "").toLowerCase();
+            return fullName === query || fn === query || username === query || email === query;
         }) || employees.find(emp => {
-            const fullName = `${emp.firstname} ${emp.lastname}`.toLowerCase();
-            const firstName = emp.firstname.toLowerCase();
+            const fn = (emp.firstname || "").toLowerCase();
+            const ln = (emp.lastname || "").toLowerCase();
+            const fullName = `${fn} ${ln}`.trim();
             const username = (emp.username || "").toLowerCase();
-            return fullName.includes(query) || firstName.includes(query) || username.includes(query);
+            const email = (emp.email || "").toLowerCase();
+            return fullName.includes(query) || fn.includes(query) || ln.includes(query) || username.includes(query) || email.includes(query);
         });
 
         if (matchedEmp) {
             selectedEmployeeId = matchedEmp.id;
-            searchInput.value = `${matchedEmp.firstname} ${matchedEmp.lastname} (${matchedEmp.username})`;
+            const fn = matchedEmp.firstname || "";
+            const ln = matchedEmp.lastname || "";
+            const displayName = (fn + " " + ln).trim() || matchedEmp.username || (`Employee #${matchedEmp.id}`);
+            searchInput.value = `${displayName} (${matchedEmp.username || matchedEmp.id})`;
             if (matchedEmp.companyDetails?.joiningDate) {
                 fromDate.value = matchedEmp.companyDetails.joiningDate;
                 fromDate.setAttribute("min", matchedEmp.companyDetails.joiningDate);
             }
-            toDate.value = today;
+            if (!toDate.value) toDate.value = today;
             return true;
         }
 
@@ -260,10 +340,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 🌟 Filter Attendance
     // ==============================
     filterBtn.addEventListener("click", async () => {
-        if (!resolveEmployee() || !fromDate.value || !toDate.value) {
-            alert("Please select employee and date range");
+        const resolved = resolveEmployee();
+        if (!resolved) {
+            alert("Please select or type an employee name");
             return;
         }
+
+        if (!fromDate.value) fromDate.value = "2026-01-01";
+        if (!toDate.value) toDate.value = today;
 
         try {
             const res = await fetch(
@@ -271,8 +355,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
             const data = await res.json();
 
-            if (!data.length) {
-                tableBody.innerHTML = `<tr><td colspan="9">No records found</td></tr>`;
+            if (!data || !data.length) {
+                tableBody.innerHTML = `<tr><td colspan="11" class="text-center">No attendance records found for this employee in the selected range.</td></tr>`;
                 return;
             }
 
@@ -298,19 +382,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (idleMinutes >= 60) idleClass = "bg-danger";
                 else if (idleMinutes >= 30) idleClass = "bg-warning text-dark";
 
+                const empName = a.employee ? `${a.employee.firstname || ''} ${a.employee.lastname || ''}`.trim() : (a.username || "-");
+                const empShift = a.employee?.companyDetails?.shiftTiming || "N/A";
+
                 return `
                 <tr>
                     <td>${a.attendanceDate}</td>
-                    <td>${a.employee.firstname} ${a.employee.lastname}</td>
-                    <td>${a.employee.companyDetails?.shiftTiming || "N/A"}</td>
+                    <td>${empName}</td>
+                    <td>${empShift}</td>
                     <td>${formatISTTime(a.checkInTime)}</td>
                     <td>${formatDurationMs(a.totalBreakTime)}</td>
+                    <td>${formatMinutes(a.totalMeetingTime || 0)}</td>
                     <td class="${idleClass}">${formatMinutes(idleMinutes)}</td>
                     <td>${formatISTTime(a.checkOutTime)}</td>
                     <td>${formatDurationMs(a.totalWorkTime)}</td>
                     <td>${remarksHtml}</td>
                     <td class="${a.status === "Present" ? "text-success fw-bold" : "text-danger fw-bold"}">
-                        ${a.status}
+                        ${a.status || 'Working'}
                     </td>
                 </tr>`;
             }).join("");
@@ -346,28 +434,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             doc.text("Attendance Report", 148, 15, { align: "center" });
 
             // 🔹 Date Info
+            const firstEmpName = data[0].employee ? `${data[0].employee.firstname || ''} ${data[0].employee.lastname || ''}`.trim() : (data[0].username || "");
             doc.setFontSize(11);
             doc.setTextColor(100);
-            doc.text(`Employee: ${data[0].employee.firstname} ${data[0].employee.lastname}`, 148, 22, { align: "center" });
+            doc.text(`Employee: ${firstEmpName}`, 148, 22, { align: "center" });
             doc.text(`From: ${fromDate.value}   To: ${toDate.value}`, 148, 27, { align: "center" });
 
             // 🔹 Table
             doc.autoTable({
                 startY: 35,
-                head: [["Date", "Employee", "Shift", "Check-In", "Break", "Idle", "Check-Out", "Work Time", "Remarks", "Status"]],
+                head: [["Date", "Employee", "Shift", "Check-In", "Break", "Meeting", "Idle", "Check-Out", "Work Time", "Remarks", "Status"]],
                 body: data.map(a => {
                     // Remarks Logic
                     let remarks = [];
                     if (a.lateIn || a.isLateIn) remarks.push(`Late (+${formatMinutes(a.lateMinutes)})`);
                     if (a.earlyOut) remarks.push(`Early (-${formatMinutes(a.earlyLeaveMinutes)})`);
                     const remarksStr = remarks.length > 0 ? remarks.join(", ") : "-";
+                    const rowEmpName = a.employee ? `${a.employee.firstname || ''} ${a.employee.lastname || ''}`.trim() : (a.username || "-");
 
                     return [
                         a.attendanceDate,
-                        `${a.employee.firstname} ${a.employee.lastname}`,
-                        a.employee.companyDetails?.shiftTiming || "N/A",
+                        rowEmpName,
+                        a.employee?.companyDetails?.shiftTiming || "N/A",
                         formatISTTime(a.checkInTime),
                         formatDurationMs(a.totalBreakTime),
+                        formatMinutes(a.totalMeetingTime || 0),
                         formatMinutes(a.idleTime),
                         formatISTTime(a.checkOutTime),
                         formatDurationMs(a.totalWorkTime),
@@ -404,5 +495,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Failed to generate PDF. Check console.");
         }
     });
-    await loadAdminAttendance();
-});
+};
+
+sideNav();
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAdminAttendance);
+} else {
+    initAdminAttendance();
+}

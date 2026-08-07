@@ -32,7 +32,7 @@
                 <a th:href="@{/leave/userLeave/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-calendar me-2"></i>Leave</a>
                 <a th:href="@{/user/hourlyReport/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-clock-history me-2"></i>Hourly Report</a>
                 <a th:href="@{/user/notification/{id}(id=${employee.id})}" class="nav-link text-white"><i class="bi bi-bell me-2"></i>Notification</a>
-                <a th:href="@{/logout}" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+                <a th:href="@{/logout}" id="logoutLink" class="nav-link text-white"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
             </nav>
         </div>
 
@@ -303,6 +303,7 @@
     </script>
     <!-- External JS -->
     <script th:src="@{/js/idleTracker.js}"></script>
+    <script th:src="@{/js/userLogoutGuard.js}"></script>
 </body>
 
 </html>

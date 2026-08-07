@@ -1,0 +1,109 @@
+/* ================================================
+   GLOBAL STATUS BADGE COLORS
+   Applied across Admin & User panels consistently
+   ================================================ */
+
+/* ── Attendance / Activity Status ── */
+.badge-working,
+.status-working {
+    background-color: #16A34A !important;
+    color: #fff !important;
+}
+
+.badge-present,
+.status-present {
+    background-color: #0F766E !important;
+    color: #fff !important;
+}
+
+.badge-break,
+.status-break,
+.status-on-break {
+    background-color: #F59E0B !important;
+    color: #fff !important;
+}
+
+.bg-purple,
+.badge-meeting,
+.status-meeting,
+.status-in-meeting {
+    background-color: #7C3AED !important;
+    color: #fff !important;
+}
+
+.badge-idle,
+.status-idle {
+    background-color: #64748B !important;
+    color: #fff !important;
+}
+
+.badge-leave,
+.status-leave {
+    background-color: #1D4ED8 !important;
+    color: #fff !important;
+}
+
+.badge-absent,
+.status-absent {
+    background-color: #DC2626 !important;
+    color: #fff !important;
+}
+
+.badge-partial,
+.status-partial {
+    background-color: #8B8B8B !important;
+    color: #fff !important;
+}
+
+/* ── Leave Request Status ── */
+.badge-approved,
+.status-approved {
+    background-color: #16A34A !important;
+    color: #fff !important;
+}
+
+.badge-pending,
+.status-pending {
+    background-color: #F59E0B !important;
+    color: #fff !important;
+}
+
+.badge-rejected,
+.status-rejected {
+    background-color: #DC2626 !important;
+    color: #fff !important;
+}
+
+.badge-cancelled,
+.status-cancelled {
+    background-color: #64748B !important;
+    color: #fff !important;
+}
+
+/* ── Shared Badge Base Style ── */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: capitalize;
+}
+
+/* ── Activity Dot Indicator (small dot next to name) ── */
+.activity-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+.dot-working   { background-color: #16A34A; }
+.dot-present   { background-color: #0F766E; }
+.dot-break     { background-color: #F59E0B; }
+.dot-meeting   { background-color: #C2410C; }
+.dot-idle      { background-color: #64748B; }
+.dot-leave     { background-color: #1D4ED8; }
+.dot-absent    { background-color: #DC2626; }
+.dot-partial   { background-color: #8B8B8B; }

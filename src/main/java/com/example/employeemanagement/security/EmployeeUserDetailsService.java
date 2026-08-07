@@ -25,19 +25,25 @@ public class EmployeeUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
 
+        String search = usernameOrEmail != null ? usernameOrEmail.trim() : "";
+
         // Try Employee first
-        Optional<Employee> empOpt = employeeRepo.findByUsername(usernameOrEmail)
-                .or(() -> employeeRepo.findByEmail(usernameOrEmail));
+        Optional<Employee> empOpt = employeeRepo.findByUsername(search)
+                .or(() -> employeeRepo.findByEmail(search))
+                .or(() -> employeeRepo.findByUsername(search.toLowerCase()))
+                .or(() -> employeeRepo.findByEmail(search.toLowerCase()));
 
         if (empOpt.isPresent()) {
             Employee emp = empOpt.get();
             System.out.println("DEBUG: Found Employee: " + emp.getUsername() + ", Stored Password: " + emp.getPassword());
-            return new EmployeeUserDetails(emp);  // ✅ Use your custom EmployeeUserDetails
+            return new EmployeeUserDetails(emp);
         }
 
         // Try Admin next
-        Optional<Admin> adminOpt = adminRepo.findByUsername(usernameOrEmail)
-                .or(() -> adminRepo.findByEmail(usernameOrEmail));
+        Optional<Admin> adminOpt = adminRepo.findByUsername(search)
+                .or(() -> adminRepo.findByEmail(search))
+                .or(() -> adminRepo.findByUsername(search.toLowerCase()))
+                .or(() -> adminRepo.findByEmail(search.toLowerCase()));
 
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();

@@ -33,7 +33,7 @@
                     <div class="mb-3 input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                         <input type="text" name="username" class="form-control"
-                            placeholder="Enter User name or Email" required>
+                            placeholder="Enter User name or Email" autocapitalize="none" autocorrect="off" spellcheck="false" required>
                     </div>
                     <div class="mb-3 input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
@@ -50,9 +50,9 @@
 
                     <button type="submit" class="btn btn-login w-100 mb-3">Login</button>
                     <!-- Global Error Alert -->
-                    <div th:if="${param.error}"
+                    <div th:if="${param.error != null or error != null}"
                         class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
-                        <div>
+                        <div th:text="${error != null ? error : 'Invalid username or password.'}">
                             Invalid username or password.
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

@@ -14,19 +14,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Sidebar Toggle Logic (If not already in HTML script block)
+    // Sidebar Toggle Logic
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const closeSidebar = document.getElementById('closeSidebar');
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.add('active'); // CSS class for showing sidebar
+            sidebar.classList.add('active-sidebar');
+            sidebar.classList.add('active');
         });
     }
 
     if (closeSidebar && sidebar) {
         closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active-sidebar');
             sidebar.classList.remove('active');
         });
     }

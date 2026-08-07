@@ -24,6 +24,8 @@ public class EmployeeDetailsService {
     @Autowired private NotificationRepository notificationRepository;
     @Autowired private NotificationService notificationService;
     @Autowired private SettingsRepository settingsRepository;
+    @Autowired private EmailTemplateService emailTemplateService;
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
     private String senderEmail;
@@ -34,6 +36,10 @@ public class EmployeeDetailsService {
 
     @Transactional
     public void submitDetails(EmployeeDetails form, Long employeeId) {
+        try {
+            jdbcTemplate.execute("SET GLOBAL max_allowed_packet = 67108864");
+        } catch (Exception ignored) {}
+
         Employee e = employeeRepository.findById(employeeId).orElse(null);
         if (e == null) return;
 
@@ -173,11 +179,20 @@ public class EmployeeDetailsService {
 
             sb.append("Regards,\nEMS Onboarding System");
 
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("name", e.getFirstname() + " " + e.getLastname());
+            vars.put("email", e.getEmail());
+            vars.put("summary", sb.toString());
+
+            String[] rendered = emailTemplateService.renderTemplate("ADMIN_ONBOARDING_ALERT", vars,
+                    "📋 Onboarding Details Submitted - " + e.getFirstname() + " " + e.getLastname(),
+                    sb.toString());
+
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(senderEmail);
             msg.setTo(senderEmail); // Send to HR/Admin Gmail
-            msg.setSubject("📋 Onboarding Details Submitted - " + e.getFirstname() + " " + e.getLastname());
-            msg.setText(sb.toString());
+            msg.setSubject(rendered[0]);
+            msg.setText(rendered[1]);
             mailSender.send(msg);
         } catch (Exception ex) {
             System.err.println("Failed to send onboarding details email: " + ex.getMessage());
@@ -358,19 +373,18 @@ public class EmployeeDetailsService {
 
     private void notifyUserOfApproval(String email, String name) {
         try {
-            Settings settings = settingsRepository.findById("default").orElseGet(() -> {
-                Settings ds = new Settings();
-                return settingsRepository.save(ds);
-            });
-            String subject = settings.getApprovalEmailSubject();
-            String body = settings.getApprovalEmailBody()
-                    .replace("{name}", name);
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("name", name);
+
+            String[] rendered = emailTemplateService.renderTemplate("ONBOARDING_APPROVAL", vars,
+                    "✅ Onboarding Fully Approved!",
+                    "Dear " + name + ",\n\nAll your details have been fully approved by HR. You now have complete access to the portal.\n\nRegards,\nHR Team");
 
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(senderEmail);
             msg.setTo(email);
-            msg.setSubject(subject);
-            msg.setText(body);
+            msg.setSubject(rendered[0]);
+            msg.setText(rendered[1]);
             mailSender.send(msg);
         } catch (Exception ex) {
             System.err.println("Approval email failed: " + ex.getMessage());
@@ -379,11 +393,6 @@ public class EmployeeDetailsService {
 
     private void notifyUserOfRejections(String email, String name, EmployeeDetails d) {
         try {
-            Settings settings = settingsRepository.findById("default").orElseGet(() -> {
-                Settings ds = new Settings();
-                return settingsRepository.save(ds);
-            });
-
             StringBuilder rejections = new StringBuilder();
             addIf(rejections, d.getPhoneStatus(), "Phone", d.getPhoneRejectionReason());
             addIf(rejections, d.getAddressStatus(), "Address", d.getAddressRejectionReason());
@@ -414,16 +423,19 @@ public class EmployeeDetailsService {
             addIf(rejections, d.getProvisionalCertStatus(), "Provisional Certificate", d.getProvisionalCertRejectionReason());
             addIf(rejections, d.getCourseCompletionStatus(), "Course Completion Cert", d.getCourseCompletionRejectionReason());
 
-            String subject = settings.getRejectionEmailSubject();
-            String body = settings.getRejectionEmailBody()
-                    .replace("{name}", name)
-                    .replace("{rejections}", rejections.toString().trim());
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("name", name);
+            vars.put("rejections", rejections.toString().trim());
+
+            String[] rendered = emailTemplateService.renderTemplate("ONBOARDING_REJECTION", vars,
+                    "⚠️ Onboarding — Action Required",
+                    "Dear " + name + ",\n\nThe following fields in your onboarding submission need corrections:\n\n" + rejections.toString().trim() + "\n\nPlease correct these and resubmit.\n\nRegards,\nHR Team");
 
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(senderEmail);
             msg.setTo(email);
-            msg.setSubject(subject);
-            msg.setText(body);
+            msg.setSubject(rendered[0]);
+            msg.setText(rendered[1]);
             mailSender.send(msg);
         } catch (Exception ex) {
             System.err.println("Rejection email failed: " + ex.getMessage());
@@ -432,20 +444,19 @@ public class EmployeeDetailsService {
 
     private void sendOnboardingReceiptEmail(Employee e) {
         try {
-            Settings settings = settingsRepository.findById("default").orElseGet(() -> {
-                Settings ds = new Settings();
-                return settingsRepository.save(ds);
-            });
             String name = e.getFirstname() + " " + e.getLastname();
-            String subject = settings.getReceiptEmailSubject();
-            String body = settings.getReceiptEmailBody()
-                    .replace("{name}", name);
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("name", name);
+
+            String[] rendered = emailTemplateService.renderTemplate("ONBOARDING_RECEIPT", vars,
+                    "📋 Onboarding Details Submitted Successfully",
+                    "Dear " + name + ",\n\nWe have successfully received your onboarding details. The HR/Admin team will review your submission shortly.\n\nRegards,\nHR Team");
 
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(senderEmail);
             msg.setTo(e.getEmail());
-            msg.setSubject(subject);
-            msg.setText(body);
+            msg.setSubject(rendered[0]);
+            msg.setText(rendered[1]);
             mailSender.send(msg);
         } catch (Exception ex) {
             System.err.println("Receipt email failed: " + ex.getMessage());

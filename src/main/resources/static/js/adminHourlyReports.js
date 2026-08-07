@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+const initAdminHourlyReports = () => {
     const filterBtn = document.getElementById("filterBtn");
     const empEl = document.getElementById("employeeInfo");
     const tableBody = document.querySelector("#reportTable tbody");
@@ -118,4 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.save(`Hourly_Report_${empName}.pdf`);
         });
     }
-});
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAdminHourlyReports);
+} else {
+    initAdminHourlyReports();
+}

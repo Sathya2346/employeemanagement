@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 
 import com.example.employeemanagement.model.Attendance;
 import com.example.employeemanagement.model.Employee;
+import com.example.employeemanagement.model.MeetingSession;
 import com.example.employeemanagement.repository.AttendanceRepository;
 import com.example.employeemanagement.repository.EmployeeRepository;
+import com.example.employeemanagement.repository.MeetingSessionRepository;
 import com.example.employeemanagement.repository.LeaveRepository;
 
 import jakarta.servlet.http.HttpSession;
@@ -41,7 +43,13 @@ public class AttendanceServiceImpl implements AttendanceService {
     private LeaveRepository leaveRepository;
 
     @Autowired
+    private LeaveService leaveService;
+
+    @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private MeetingSessionRepository meetingSessionRepository;
 
     // ===============================
     // SHIFT TIMINGS (UNCHANGED)
@@ -82,6 +90,9 @@ public class AttendanceServiceImpl implements AttendanceService {
         LocalDate attendanceDate = Optional.ofNullable(attendanceData.getAttendanceDate())
                 .orElse(LocalDate.now(IST));
 
+        // Automatically cancel any pending/approved leaves for this date
+        leaveService.cancelLeaveDueToCheckIn(employee, attendanceDate);
+
         Attendance attendance = attendanceRepository
                 .findByEmployee_IdAndAttendanceDate(employeeId, attendanceDate)
                 .orElseGet(Attendance::new);
@@ -89,10 +100,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setEmployee(employee);
         attendance.setUsername(employee.getUsername());
         attendance.setAttendanceDate(attendanceDate);
-
-        if (Boolean.TRUE.equals(attendance.getLeaveApproved())) {
-            throw new RuntimeException("Cannot check-in: Leave is approved for today!");
-        }
+        attendance.setLeaveApproved(false);
 
         LocalTime checkIn = attendanceData.getCheckInTime();
         LocalTime checkOut = attendanceData.getCheckOutTime();
@@ -100,11 +108,21 @@ public class AttendanceServiceImpl implements AttendanceService {
         LocalTime breakEnd = attendanceData.getBreakEnd();
         long idleMinutes = attendanceData.getIdleTime() != null ? attendanceData.getIdleTime() : 0;
 
-        attendance.setCheckInTime(checkIn);
-        attendance.setCheckOutTime(checkOut);
-        attendance.setBreakStart(breakStart);
-        attendance.setBreakEnd(breakEnd);
-        attendance.setIdleTime(idleMinutes);
+        if (checkIn != null) {
+            attendance.setCheckInTime(checkIn);
+        }
+        if (checkOut != null) {
+            attendance.setCheckOutTime(checkOut);
+        }
+        if (breakStart != null) {
+            attendance.setBreakStart(breakStart);
+        }
+        if (breakEnd != null) {
+            attendance.setBreakEnd(breakEnd);
+        }
+        if (attendanceData.getIdleTime() != null) {
+            attendance.setIdleTime(idleMinutes);
+        }
 
         // ===============================
         // BREAK TIME (UNCHANGED)
@@ -132,7 +150,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         // ===============================
         // SHIFT HOURS
         // ===============================
-        String shift = employee.getCompanyDetails().getShiftTiming();
+        String shift = employee.getCompanyDetails() != null ? employee.getCompanyDetails().getShiftTiming() : AppConstants.SHIFT_MORNING;
         LocalTime officeStart = getShiftStart(shift);
         LocalTime officeEnd = getShiftEnd(shift);
 
@@ -153,14 +171,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         // ===============================
         if (Boolean.TRUE.equals(attendance.getLeaveApproved())) {
             attendance.setStatus("Leave");
+        } else if (checkIn == null) {
+            attendance.setStatus("Absent");
         } else {
-            // Check for Half Day (e.g. 4 hours = 240 mins)
-            if (workMinutes < 240) {
-                attendance.setStatus("Absent");
-            } else if (workMinutes < fullWorkMinutes) {
-                attendance.setStatus("Partial");
-            } else {
+            if (workMinutes >= fullWorkMinutes && fullWorkMinutes > 0) {
                 attendance.setStatus("Present");
+            } else {
+                attendance.setStatus("Partial");
             }
         }
 
@@ -169,6 +186,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         // LATE / EARLY CHECK-IN (SHIFT + GRACE SAFE)
         // ===============================
         long lateMinutes = 0;
+        long earlyInMinutes = 0;
         boolean earlyIn = false;
         if (checkIn != null) {
             if (officeEnd.isAfter(officeStart)) {
@@ -177,6 +195,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                     lateMinutes = Duration.between(officeStart, checkIn).toMinutes();
                 } else if (checkIn.isBefore(officeStart)) {
                     earlyIn = true;
+                    earlyInMinutes = Duration.between(checkIn, officeStart).toMinutes();
                 }
             } else {
                 // Night Shift Rollover
@@ -186,13 +205,16 @@ public class AttendanceServiceImpl implements AttendanceService {
                     lateMinutes = Duration.between(officeStart, adjCheckIn).toMinutes();
                 } else if (adjCheckIn.isBefore(officeStart)) {
                     earlyIn = true;
+                    earlyInMinutes = Duration.between(adjCheckIn, officeStart).toMinutes();
                 }
             }
         }
 
         attendance.setLateMinutes(lateMinutes);
+        attendance.setEarlyInMinutes(earlyInMinutes);
         attendance.setLateCheckIn(lateMinutes > 0);
         attendance.setEarlyCheckIn(earlyIn);
+        attendance.setEarlyIn(earlyIn);
         attendance.setLateIn(lateMinutes > GRACE_MINUTES);
 
         // ===============================
@@ -321,6 +343,10 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Employee> allEmployees = employeeRepository.findAll();
 
         for (Employee employee : allEmployees) {
+            LocalDate joiningDate = (employee.getCompanyDetails() != null) ? employee.getCompanyDetails().getJoiningDate() : null;
+            if (joiningDate != null && today.isBefore(joiningDate)) {
+                continue; // Do not mark absent before employee's joining date
+            }
 
             Optional<Attendance> existing =
                     attendanceRepository.findByEmployeeAndAttendanceDate(employee, today);
@@ -362,24 +388,47 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final Map<Long, LocalDateTime> lastIdleStartMap = new HashMap<>();
 
     private Employee getLoggedInEmployee() {
-        org.springframework.web.context.request.ServletRequestAttributes attr = 
-            (org.springframework.web.context.request.ServletRequestAttributes) 
-            org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes();
-        jakarta.servlet.http.HttpSession sessionObj = attr.getRequest().getSession();
-        Long id = (Long) sessionObj.getAttribute("employeeId");
-        return employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee Not Found in Session"));
+        try {
+            org.springframework.web.context.request.ServletRequestAttributes attr = 
+                (org.springframework.web.context.request.ServletRequestAttributes) 
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attr != null && attr.getRequest() != null) {
+                jakarta.servlet.http.HttpSession sessionObj = attr.getRequest().getSession(false);
+                if (sessionObj != null) {
+                    Long id = (Long) sessionObj.getAttribute("employeeId");
+                    if (id != null) {
+                        Optional<Employee> empOpt = employeeRepository.findById(id);
+                        if (empOpt.isPresent()) return empOpt.get();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            org.springframework.security.core.Authentication auth = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                String name = auth.getName();
+                Optional<Employee> empOpt = employeeRepository.findByUsername(name);
+                if (empOpt.isPresent()) return empOpt.get();
+                return employeeRepository.findByEmail(name).orElse(null);
+            }
+        } catch (Exception ignored) {}
+
+        return null;
     }
 
     @Override
     public void startIdle(String timeStr) {
         Employee employee = getLoggedInEmployee();
+        if (employee == null) return;
         LocalDateTime idleStart = LocalDateTime.parse(timeStr);
         if (!idleStart.toLocalDate().equals(LocalDate.now(IST))) return;
         lastIdleStartMap.put(employee.getId(), idleStart);
 
-        // ✅ Update Activity Status to Idle (unless on leave)
-        if (!"Leave".equals(employee.getActivityStatus())) {
+        // ✅ Update Activity Status to Idle ONLY if not on Leave, Meeting, or Break
+        String currentStatus = employee.getActivityStatus();
+        if (!"Leave".equals(currentStatus) && !"Meeting".equals(currentStatus) && !"In Meeting".equals(currentStatus) && !"Break".equals(currentStatus) && !"On Break".equals(currentStatus)) {
             employee.setActivityStatus("Idle");
             employeeRepository.save(employee);
         }
@@ -388,6 +437,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public void endIdle(String timeStr) {
         Employee employee = getLoggedInEmployee();
+        if (employee == null) return;
         LocalDateTime lastIdleStart = lastIdleStartMap.get(employee.getId());
         if (lastIdleStart == null) return;
 
@@ -410,8 +460,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 record.setIdleTime(existingIdle + idleMinutes);
                 attendanceRepository.save(record);
 
-                // ✅ If they have checked in and not checked out, set status to Working
-                if (record.getCheckInTime() != null && record.getCheckOutTime() == null && !"Leave".equals(employee.getActivityStatus())) {
+                // ✅ Revert to Working ONLY IF current status was Idle
+                if (record.getCheckInTime() != null && record.getCheckOutTime() == null && "Idle".equals(employee.getActivityStatus())) {
                     employee.setActivityStatus("Working");
                     employeeRepository.save(employee);
                 }
@@ -423,37 +473,111 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public void startBreak(String timeStr) {
         Employee employee = getLoggedInEmployee();
-        if (!"Leave".equals(employee.getActivityStatus())) {
+        if (employee != null && !"Leave".equals(employee.getActivityStatus())) {
             employee.setActivityStatus("Break");
             employeeRepository.save(employee);
         }
 
-        attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
-            .ifPresent(record -> {
-                record.setBreakStart(LocalTime.now(IST));
-                record.setBreakEnd(null);
-                attendanceRepository.save(record);
-            });
+        if (employee != null) {
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    record.setBreakStart(LocalTime.now(IST));
+                    record.setBreakEnd(null);
+                    attendanceRepository.save(record);
+                });
+        }
     }
 
     @Override
     public void endBreak(String timeStr) {
         Employee employee = getLoggedInEmployee();
-        if (!"Leave".equals(employee.getActivityStatus())) {
+        if (employee != null && !"Leave".equals(employee.getActivityStatus())) {
             employee.setActivityStatus("Working");
             employeeRepository.save(employee);
         }
 
-        attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
-            .ifPresent(record -> {
-                if (record.getBreakStart() != null) {
-                    LocalTime end = LocalTime.now(IST);
-                    record.setBreakEnd(end);
-                    long minutes = Duration.between(record.getBreakStart(), end).toMinutes();
-                    long existingBreak = record.getTotalBreakTime() != null ? record.getTotalBreakTime() : 0;
-                    record.setTotalBreakTime(existingBreak + minutes);
-                }
-                attendanceRepository.save(record);
-            });
+        if (employee != null) {
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    if (record.getBreakStart() != null) {
+                        LocalTime end = LocalTime.now(IST);
+                        record.setBreakEnd(end);
+                        long seconds = Duration.between(record.getBreakStart(), end).getSeconds();
+                        long mins = Math.max(0, Math.round(seconds / 60.0));
+                        if (seconds > 0 && mins == 0) mins = 1;
+                        long existingBreak = record.getTotalBreakTime() != null ? record.getTotalBreakTime() : 0;
+                        record.setTotalBreakTime(existingBreak + mins);
+                    }
+                    attendanceRepository.save(record);
+                });
+        }
+    }
+
+    // ===============================
+    // MEETING (like Break)
+    // ===============================
+    @Override
+    public void startMeeting() {
+        Employee employee = getLoggedInEmployee();
+        if (employee != null && !"Leave".equals(employee.getActivityStatus())) {
+            employee.setActivityStatus("Meeting");
+            employeeRepository.save(employee);
+        }
+
+        if (employee != null) {
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    // Close any open session first (safety guard)
+                    meetingSessionRepository.findByAttendanceIdAndMeetingEndIsNull(record.getId())
+                        .ifPresent(open -> {
+                            open.setMeetingEnd(LocalTime.now(IST));
+                            long mins = Duration.between(open.getMeetingStart(), open.getMeetingEnd()).toMinutes();
+                            open.setDuration(Math.max(mins, 0));
+                            meetingSessionRepository.save(open);
+                        });
+
+                    MeetingSession session = new MeetingSession();
+                    session.setAttendance(record);
+                    session.setMeetingStart(LocalTime.now(IST));
+                    meetingSessionRepository.save(session);
+                });
+        }
+    }
+
+    @Override
+    public void endMeeting() {
+        Employee employee = getLoggedInEmployee();
+        if (employee != null && !"Leave".equals(employee.getActivityStatus())) {
+            employee.setActivityStatus("Working");
+            employeeRepository.save(employee);
+        }
+
+        if (employee != null) {
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    meetingSessionRepository.findByAttendanceIdAndMeetingEndIsNull(record.getId())
+                        .ifPresent(session -> {
+                            LocalTime end = LocalTime.now(IST);
+                            session.setMeetingEnd(end);
+                            long seconds = Duration.between(session.getMeetingStart(), end).getSeconds();
+                            long mins = Math.max(0, Math.round(seconds / 60.0));
+                            if (seconds > 0 && mins == 0) mins = 1;
+                            session.setDuration(mins);
+                            meetingSessionRepository.save(session);
+
+                            // Update cumulative meeting time on attendance
+                            long existing = record.getTotalMeetingTime() != null ? record.getTotalMeetingTime() : 0;
+                            record.setTotalMeetingTime(existing + mins);
+                            attendanceRepository.save(record);
+                        });
+                });
+        }
+    }
+
+    @Override
+    public boolean isCheckedInWithoutCheckout(Long employeeId) {
+        return attendanceRepository.findByEmployee_IdAndAttendanceDate(employeeId, LocalDate.now(IST))
+            .map(a -> a.getCheckInTime() != null && a.getCheckOutTime() == null)
+            .orElse(false);
     }
 }

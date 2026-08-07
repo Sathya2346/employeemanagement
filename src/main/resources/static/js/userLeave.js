@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+const initUserLeave = function () {
     console.log("✅ userLeave.js loaded successfully");
 
     const applyBtn = document.getElementById('applyBtn');
@@ -116,16 +116,23 @@ document.addEventListener("DOMContentLoaded", function () {
             if (tableBody.querySelector('.text-danger')) tableBody.innerHTML = "";
 
             const newRow = document.createElement('tr');
+            newRow.setAttribute('data-leave-id', savedLeave.id);
             newRow.innerHTML = `
                 <td>${savedLeave.employeeName}</td>
                 <td>${savedLeave.leaveType}</td>
                 <td>${savedLeave.leaveFromDate}</td>
                 <td>${savedLeave.leaveToDate}</td>
                 <td>${savedLeave.leaveDays}</td>
-                <td>${savedLeave.leaveApprovedBy || " "}</td>
+                <td>${savedLeave.leaveApprovedBy || "-"}</td>
                 <td><span class="status pending">${savedLeave.leaveStatus}</span></td>
+                <td class="action-icons">
+                    <button class="btn btn-sm btn-outline-danger cancel-btn px-2.5 py-1 fw-medium shadow-sm" data-id="${savedLeave.id}" title="Cancel Leave Request">
+                        <i class="bi bi-trash3-fill me-1"></i>Cancel
+                    </button>
+                </td>
             `;
             tableBody.prepend(newRow); // New leaves at top
+            attachCancelHandlers();
 
             alert(result.message || "✅ Leave applied successfully!");
             modal.classList.remove('show');
@@ -176,10 +183,64 @@ document.addEventListener("DOMContentLoaded", function () {
         await updateBalances(empId);
     });
 
+    // 🌟 Filter Button Logic
+    const filterBtn = document.getElementById("filterLeaveBtn");
+    if (filterBtn) {
+        filterBtn.addEventListener("click", () => {
+            const fromVal = document.getElementById("fromDateDownload")?.value;
+            const toVal = document.getElementById("toDateDownload")?.value;
+            if (!fromVal && !toVal) {
+                alert("Please select a From Date or To Date to filter!");
+                return;
+            }
+            const fromMs = fromVal ? new Date(fromVal).getTime() : 0;
+            const toMs = toVal ? new Date(toVal).getTime() : Infinity;
+
+            let visibleCount = 0;
+            document.querySelectorAll("table tbody tr").forEach(tr => {
+                const cells = tr.querySelectorAll("td");
+                if (cells.length >= 4) {
+                    const rowFromStr = cells[2].innerText.trim();
+                    const rowFromMs = rowFromStr ? new Date(rowFromStr).getTime() : 0;
+                    if (rowFromMs >= fromMs && rowFromMs <= toMs) {
+                        tr.style.display = "";
+                        visibleCount++;
+                    } else {
+                        tr.style.display = "none";
+                    }
+                }
+            });
+            if (visibleCount === 0) {
+                alert("No leave records found for the selected date range.");
+            }
+        });
+    }
+
     // 🌟 Download PDF (Client-side)
     const downloadBtn = document.getElementById("downloadLeaveBtn");
     if (downloadBtn) {
         downloadBtn.addEventListener("click", () => {
+            const rows = [];
+            document.querySelectorAll("table tbody tr").forEach(tr => {
+                if (tr.style.display !== "none") {
+                    const cells = tr.querySelectorAll("td");
+                    if (cells.length > 1 && !tr.querySelector(".text-danger")) {
+                        rows.push([
+                            cells[1].innerText, // Leave Type
+                            cells[2].innerText, // From
+                            cells[3].innerText, // To
+                            cells[4].innerText, // Days
+                            cells[6].innerText.trim() // Status
+                        ]);
+                    }
+                }
+            });
+
+            if (rows.length === 0) {
+                alert("No leave records found for the selected period. Cannot download an empty report.");
+                return;
+            }
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -195,21 +256,6 @@ document.addEventListener("DOMContentLoaded", function () {
             doc.text(`Employee: ${empName}`, 105, 22, { align: "center" });
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 27, { align: "center" });
 
-            // 🔹 Table Data
-            const rows = [];
-            document.querySelectorAll("table tbody tr").forEach(tr => {
-                const cells = tr.querySelectorAll("td");
-                if (cells.length > 0) {
-                    rows.push([
-                        cells[1].innerText, // Leave Type
-                        cells[2].innerText, // From
-                        cells[3].innerText, // To
-                        cells[4].innerText, // Days
-                        cells[6].innerText.trim() // Status
-                    ]);
-                }
-            });
-
             // 🔹 Generate Table
             doc.autoTable({
                 startY: 35,
@@ -224,4 +270,44 @@ document.addEventListener("DOMContentLoaded", function () {
             doc.save(`My_Leave_Report.pdf`);
         });
     }
-});
+
+    function attachCancelHandlers() {
+        document.querySelectorAll(".cancel-btn").forEach(btn => {
+            // Remove previous event listener to avoid duplicates
+            btn.replaceWith(btn.cloneNode(true));
+        });
+        
+        document.querySelectorAll(".cancel-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const leaveId = btn.dataset.id;
+                if (!confirm("Are you sure you want to cancel this leave request?")) return;
+                
+                try {
+                    const response = await fetch(`/leave/cancel/${leaveId}`, {
+                        method: "POST"
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert(result.message || "✅ Leave cancelled successfully.");
+                        location.reload();
+                    } else {
+                        alert(result.message || "❌ Failed to cancel leave.");
+                    }
+                } catch (error) {
+                    console.error("Error cancelling leave:", error);
+                    alert("❌ System error occurred while cancelling leave.");
+                }
+            });
+        });
+    }
+
+    // Bind on page load
+    attachCancelHandlers();
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initUserLeave);
+} else {
+    initUserLeave();
+}

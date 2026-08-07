@@ -352,4 +352,13 @@ public class EmployeeDetails {
     public String getTransferCertBase64() { return transferCertData != null ? Base64.getEncoder().encodeToString(transferCertData) : null; }
     public String getProvisionalCertBase64() { return provisionalCertData != null ? Base64.getEncoder().encodeToString(provisionalCertData) : null; }
     public String getCourseCompletionBase64() { return courseCompletionData != null ? Base64.getEncoder().encodeToString(courseCompletionData) : null; }
+
+    public String getPhotoSrc() { return photoData != null ? "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photoData) : null; }
+    public String getAadharSrc() { return aadharData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(aadharData) : null; }
+    public String getPanSrc() { return panData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(panData) : null; }
+    public String getMark10thSrc() { return mark10thData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(mark10thData) : null; }
+    public String getMark12thSrc() { return mark12thData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(mark12thData) : null; }
+    public String getTransferCertSrc() { return transferCertData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(transferCertData) : null; }
+    public String getProvisionalCertSrc() { return provisionalCertData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(provisionalCertData) : null; }
+    public String getCourseCompletionSrc() { return courseCompletionData != null ? "data:application/pdf;base64," + Base64.getEncoder().encodeToString(courseCompletionData) : null; }
 }

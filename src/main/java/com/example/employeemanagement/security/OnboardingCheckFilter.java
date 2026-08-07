@@ -86,6 +86,7 @@ public class OnboardingCheckFilter extends OncePerRequestFilter {
     private boolean shouldSkipFilter(String requestURI) {
         // Skip filter for login, logout, password reset, etc.
         if (requestURI.contains("/login")
+                || requestURI.contains("/auto-login")
                 || requestURI.contains("/logout")
                 || requestURI.contains("/forgot-password")
                 || requestURI.contains("/verify-otp")

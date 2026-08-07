@@ -118,8 +118,11 @@ public class Employee implements Serializable {
     private List<HourlyReport> hourlyReports;
 
     @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private EmployeeDetails employeeDetails;
+
+    public EmployeeDetails getOnboardingDetails() {
+        return employeeDetails;
+    }
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
@@ -138,6 +141,12 @@ public class Employee implements Serializable {
     public String getProfileImageSrc() {
         if (profile != null && profile.length > 0) {
             return "data:image/png;base64," + Base64.getEncoder().encodeToString(profile);
+        }
+        if (base64Image != null && !base64Image.trim().isEmpty()) {
+            if (base64Image.startsWith("data:image")) {
+                return base64Image;
+            }
+            return "data:image/png;base64," + base64Image;
         }
         return "/images/default-avatar.png";
     }

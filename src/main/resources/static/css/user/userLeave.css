@@ -94,32 +94,46 @@ a {
     flex-wrap: wrap;
 }
 
-.btn-calendar {
-    background-color: #23d2aa;
-    color: white;
-    border-radius: 8px;
-    border: none;
-    padding: 8px 12px;
-    transition: all 0.3s ease;
+.btn-month,
+.btn-calendar,
+#filterBtn,
+#filterAttendanceBtn,
+#filterLeaveBtn {
+    background-color: #23d2aa !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-calendar:hover {
-    background-color: #60d6ba;
-    transform: scale(1.05);
+.btn-month:hover,
+.btn-calendar:hover,
+#filterBtn:hover,
+#filterAttendanceBtn:hover,
+#filterLeaveBtn:hover {
+    background-color: #50d2b3 !important;
+    color: #ffffff !important;
 }
 
-.btn-download {
-    background-color: #FF7423;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 16px;
-    transition: all 0.3s ease;
+.btn-download,
+#pdfBtn,
+#downloadPdfBtn,
+#downloadAttendanceBtn,
+#downloadLeaveBtn {
+    background-color: #FF7423 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.btn-download:hover {
-    background-color: #f78543;
-    transform: translateY(-2px);
+.btn-download:hover,
+#pdfBtn:hover,
+#downloadPdfBtn:hover,
+#downloadAttendanceBtn:hover,
+#downloadLeaveBtn:hover {
+    background-color: #e65c0d !important;
+    color: #ffffff !important;
 }
 
 /* ===== Info Cards ===== */
@@ -255,6 +269,13 @@ td {
 .rejected {
     background-color: #f57c7c !important;
     /* Red */
+    color: white;
+    /* White text */
+}
+
+.cancelled {
+    background-color: #6c757d !important;
+    /* Gray */
     color: white;
     /* White text */
 }

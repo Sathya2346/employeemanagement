@@ -289,6 +289,7 @@ public class EmployeeController {
         }
 
         model.addAttribute("employees", employees);
+        model.addAttribute("adminUnreadCount", notificationService.countUnreadForAdmin());
         return "admin/profile";
     }
 
@@ -348,7 +349,7 @@ public class EmployeeController {
     public ResponseEntity<List<Employee>> getAllEmployees() {
         try {
             List<Employee> employees = employeeService.getAllEmployees().stream()
-                    .filter(e -> "FULLY_APPROVED".equals(e.getOverallStatus()))
+                    .filter(e -> e.getOverallStatus() == null || !"REJECTED".equalsIgnoreCase(e.getOverallStatus()))
                     .collect(java.util.stream.Collectors.toList());
             return ResponseEntity.ok(employees);
         } catch (Exception e) {

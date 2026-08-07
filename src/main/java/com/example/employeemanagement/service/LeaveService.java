@@ -282,6 +282,7 @@ public class LeaveService {
         // 1️⃣ Mark leave as rejected
         leave.setLeaveStatus("Rejected");
         leaveRepository.save(leave);
+        notificationRepository.updateLeaveStatusByReferenceId(leave.getId(), "Rejected");
 
         // 2️⃣ Return leave balance ONLY if not already rejected
         if (!"Rejected".equalsIgnoreCase(previousStatus)) {
@@ -313,5 +314,102 @@ public class LeaveService {
 
             date = date.plusDays(1);
         }
+    }
+
+    @Transactional
+    public void cancelLeaveDueToCheckIn(Employee employee, LocalDate date) {
+        List<Leave> activeLeaves = leaveRepository.findActiveLeavesOnDate(employee.getId(), date);
+        for (Leave leave : activeLeaves) {
+            leave.setLeaveStatus("Cancelled");
+            leave.setLeaveApprovedBy("Auto Cancel (Checked In)");
+            leaveRepository.save(leave);
+
+            // Refund the leave days back to employee balance
+            returnLeaveDaysToBalance(leave);
+
+            // Reset attendance records for the dates of the leave
+            LocalDate d = leave.getLeaveFromDate();
+            LocalDate endDate = leave.getLeaveToDate();
+            while (!d.isAfter(endDate)) {
+                final LocalDate currentD = d;
+                attendanceRepository.findByEmployeeAndAttendanceDate(employee, currentD)
+                    .ifPresent(attendance -> {
+                        attendance.setLeaveApproved(false);
+                        if (attendance.getCheckInTime() != null) {
+                            attendance.setStatus("Present");
+                        } else {
+                            attendance.setStatus("Absent");
+                        }
+                        attendanceRepository.save(attendance);
+                    });
+                d = d.plusDays(1);
+            }
+
+            // Remove any pending leave notifications
+            notificationService.removePendingLeaveNotification(leave.getId());
+            notificationRepository.updateLeaveStatusByReferenceId(leave.getId(), "Cancelled");
+
+            // Notify Admin
+            notificationService.sendAdminNotification(
+                "Leave Auto-Cancelled",
+                "Leave for " + employee.getFirstname() + " " + employee.getLastname() + " from " + leave.getLeaveFromDate() + " to " + leave.getLeaveToDate() + " was automatically cancelled because the employee checked in on " + date + ".",
+                "Leave",
+                leave.getId()
+            );
+
+            // Notify Employee
+            String msg = "Your leave from " + leave.getLeaveFromDate() + " to " + leave.getLeaveToDate() + " has been automatically cancelled as you checked in on " + date + ". The leave days have been refunded.";
+            notificationService.sendNotification(
+                "Leave Auto-Cancelled",
+                msg,
+                "Leave",
+                leave.getId(),
+                employee.getUsername()
+            );
+        }
+    }
+
+    @Transactional
+    public void cancelLeaveManually(Long leaveId, String username) {
+        Leave leave = leaveRepository.findById(leaveId)
+                .orElseThrow(() -> new RuntimeException("Leave not found with ID: " + leaveId));
+
+        Employee employee = leave.getEmployee();
+        leave.setLeaveStatus("Cancelled");
+        leave.setLeaveApprovedBy("Cancelled by Employee");
+        leaveRepository.save(leave);
+
+        // Refund the leave days back to employee balance
+        returnLeaveDaysToBalance(leave);
+
+        // Reset attendance records for the dates of the leave
+        LocalDate d = leave.getLeaveFromDate();
+        LocalDate endDate = leave.getLeaveToDate();
+        while (!d.isAfter(endDate)) {
+            final LocalDate currentD = d;
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, currentD)
+                .ifPresent(attendance -> {
+                    attendance.setLeaveApproved(false);
+                    if (attendance.getCheckInTime() != null) {
+                        attendance.setStatus("Present");
+                    } else {
+                        attendance.setStatus("Absent");
+                    }
+                    attendanceRepository.save(attendance);
+                });
+            d = d.plusDays(1);
+        }
+
+        // Remove any pending leave notifications
+        notificationService.removePendingLeaveNotification(leave.getId());
+        notificationRepository.updateLeaveStatusByReferenceId(leave.getId(), "Cancelled");
+
+        // Notify Admin
+        notificationService.sendAdminNotification(
+            "Leave Cancelled Manually",
+            "Leave for " + employee.getFirstname() + " " + employee.getLastname() + " from " + leave.getLeaveFromDate() + " to " + leave.getLeaveToDate() + " was manually cancelled by the employee.",
+            "Leave",
+            leave.getId()
+        );
     }
 }

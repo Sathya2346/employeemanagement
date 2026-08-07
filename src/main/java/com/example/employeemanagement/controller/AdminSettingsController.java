@@ -38,6 +38,29 @@ public class AdminSettingsController {
             Settings ds = new Settings();
             return settingsRepository.save(ds);
         });
+
+        // Ensure default email subjects and bodies are auto-populated if previously null in DB
+        boolean updated = false;
+        if (settings.getWelcomeEmailSubject() == null) { settings.setWelcomeEmailSubject("🎉 Welcome to Employee Management System — Your Login Credentials"); updated = true; }
+        if (settings.getWelcomeEmailBody() == null) { settings.setWelcomeEmailBody("Hello,\n\nYour employee account has been created. Use the credentials below to log in:\n\n  Username  : {username}\n  Email     : {email}\n  Password  : {password}\n\nAfter logging in, please complete your onboarding profile.\n\nRegards,\nHR Team"); updated = true; }
+        if (settings.getReceiptEmailSubject() == null) { settings.setReceiptEmailSubject("📋 Onboarding Details Submitted Successfully"); updated = true; }
+        if (settings.getReceiptEmailBody() == null) { settings.setReceiptEmailBody("Dear {name},\n\nWe have successfully received your onboarding details. The HR/Admin team will review your submission shortly.\n\nRegards,\nHR Team"); updated = true; }
+        if (settings.getRejectionEmailSubject() == null) { settings.setRejectionEmailSubject("⚠️ Onboarding — Action Required"); updated = true; }
+        if (settings.getRejectionEmailBody() == null) { settings.setRejectionEmailBody("Dear {name},\n\nThe following fields in your onboarding submission need corrections:\n\n{rejections}\n\nPlease correct these and resubmit.\n\nRegards,\nHR Team"); updated = true; }
+        if (settings.getApprovalEmailSubject() == null) { settings.setApprovalEmailSubject("✅ Onboarding Fully Approved!"); updated = true; }
+        if (settings.getApprovalEmailBody() == null) { settings.setApprovalEmailBody("Dear {name},\n\nAll your details have been fully approved by HR. You now have complete access to the portal.\n\nRegards,\nHR Team"); updated = true; }
+        if (settings.getOtpEmailSubject() == null) { settings.setOtpEmailSubject("🔐 Employee Management - Password Reset OTP"); updated = true; }
+        if (settings.getOtpEmailBody() == null) { settings.setOtpEmailBody("Your password reset OTP is: {otp}. It is valid for {expiry_minutes} minutes."); updated = true; }
+        if (settings.getAdminAlertEmailSubject() == null) { settings.setAdminAlertEmailSubject("📋 Onboarding Details Submitted - {name}"); updated = true; }
+        if (settings.getAdminAlertEmailBody() == null) { settings.setAdminAlertEmailBody("Employee {name} ({email}) has submitted onboarding details for review.\n\nDetails Submitted:\n{summary}\n\nRegards,\nEMS System"); updated = true; }
+        if (settings.getLeaveApprovedEmailSubject() == null) { settings.setLeaveApprovedEmailSubject("✅ Leave Request Approved - {leave_type}"); updated = true; }
+        if (settings.getLeaveApprovedEmailBody() == null) { settings.setLeaveApprovedEmailBody("Dear {name},\n\nYour leave request for {leave_type} from {from_date} to {to_date} has been approved.\n\nRegards,\nHR Team"); updated = true; }
+        if (settings.getLeaveRejectedEmailSubject() == null) { settings.setLeaveRejectedEmailSubject("❌ Leave Request Rejected - {leave_type}"); updated = true; }
+        if (settings.getLeaveRejectedEmailBody() == null) { settings.setLeaveRejectedEmailBody("Dear {name},\n\nYour leave request for {leave_type} from {from_date} to {to_date} has been rejected.\n\nRegards,\nHR Team"); updated = true; }
+
+        if (updated) {
+            settingsRepository.save(settings);
+        }
         
         // Auto-initialize default shift timings if table is empty
         if (shiftTimingRepository.count() == 0) {

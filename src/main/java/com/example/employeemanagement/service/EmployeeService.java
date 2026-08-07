@@ -54,6 +54,9 @@ public class EmployeeService {
     @Autowired
     private SettingsRepository settingsRepository;
 
+    @Autowired
+    private EmailTemplateService emailTemplateService;
+
     private static final int OTP_EXPIRATION_MINUTES = 5;
 
     // ------------------- EMPLOYEE OPERATIONS -------------------
@@ -73,26 +76,28 @@ public class EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    public void sendWelcomeEmail(String email, String username, String password) {
+    public boolean sendWelcomeEmail(String email, String username, String password) {
         try {
-            Settings settings = settingsRepository.findById("default").orElseGet(() -> {
-                Settings ds = new Settings();
-                return settingsRepository.save(ds);
-            });
-            String subject = settings.getWelcomeEmailSubject();
-            String body = settings.getWelcomeEmailBody()
-                    .replace("{username}", username)
-                    .replace("{email}", email)
-                    .replace("{password}", password);
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("username", username);
+            vars.put("email", email);
+            vars.put("password", password);
+
+            String[] rendered = emailTemplateService.renderTemplate("WELCOME_EMAIL", vars,
+                    "🎉 Welcome to Employee Management System — Your Login Credentials",
+                    "Hello,\n\nYour employee account has been created. Username: " + username + ", Email: " + email + ", Password: " + password);
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(email);
-            message.setSubject(subject);
-            message.setText(body);
+            message.setSubject(rendered[0]);
+            message.setText(rendered[1]);
             mailSender.send(message);
+            return true;
         } catch (Exception e) {
-            System.err.println("Failed to send welcome email: " + e.getMessage());
+            System.err.println("=== FAILED TO SEND WELCOME EMAIL ===");
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -198,9 +203,11 @@ public class EmployeeService {
                     } else if (attendance.getBreakStart() != null && attendance.getBreakEnd() == null) {
                         employee.setActivityStatus("Break");
                     } else {
-                        // Use current DB status which is tracked in real-time (Working vs Idle)
+                        // Use current DB status which is tracked in real-time (Working vs Idle vs Meeting vs Break)
                         String currentStatus = employee.getActivityStatus();
-                        if (!"Idle".equals(currentStatus) && !"Working".equals(currentStatus) && !"Break".equals(currentStatus)) {
+                        if (!"Idle".equals(currentStatus) && !"Working".equals(currentStatus) 
+                            && !"Break".equals(currentStatus) && !"On Break".equals(currentStatus) 
+                            && !"Meeting".equals(currentStatus) && !"In Meeting".equals(currentStatus)) {
                             employee.setActivityStatus("Working");
                         }
                     }
@@ -239,12 +246,19 @@ public class EmployeeService {
         }
 
         try {
+            java.util.Map<String, String> vars = new java.util.HashMap<>();
+            vars.put("otp", otp);
+            vars.put("expiry_minutes", String.valueOf(OTP_EXPIRATION_MINUTES));
+
+            String[] rendered = emailTemplateService.renderTemplate("PASSWORD_RESET_OTP", vars,
+                    "🔐 Employee Management - Password Reset OTP",
+                    "Your password reset OTP is: " + otp + ". It is valid for " + OTP_EXPIRATION_MINUTES + " minutes.");
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
             message.setTo(email);
-            message.setSubject("Employee Management - Password Reset OTP");
-            message.setText("Your password reset OTP is: " + otp +
-                    ". It is valid for " + OTP_EXPIRATION_MINUTES + " minutes.");
+            message.setSubject(rendered[0]);
+            message.setText(rendered[1]);
 
             mailSender.send(message);
         } catch (Exception e) {

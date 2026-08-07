@@ -71,7 +71,7 @@ a {
     color: #FF7423;
 }
 .btn-download {
-    background-color: #23d2aa;
+    background-color: #FF7423;
     color: white;
     border: none;
     border-radius: 8px;
@@ -80,7 +80,7 @@ a {
 }
 
 .btn-download:hover {
-    background-color: #50d2b3;
+    background-color: #e65c0d;
     transform: translateY(-2px);
 }
 /* ===== Main Content ===== */
@@ -176,8 +176,9 @@ a {
         overflow-y: auto; /* keep vertical scroll */
     }
 
-    .active-sidebar {
-        left: 0;
+    .active-sidebar,
+    .sidebar.active {
+        left: 0 !important;
     }
 
     .main-content {

@@ -63,24 +63,22 @@ a {
 
 /* ===== Navbar ===== */
 .navbar-custom {
-    background-color: white;
-    border-bottom: 1px solid #e5e5e5;
-    border-radius: 10px;
-    padding: 10px 20px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
 .navbar-left h4>a {
+    color: #999;
     font-weight: 600;
     margin: 0;
-    color: #000;
 }
 
 .navbar-left h4 span>a {
-    color: #999;
+    color: #000;
     margin-left: 10px;
 }
 
@@ -91,32 +89,147 @@ a {
     flex-wrap: wrap;
 }
 
-/* ===== Buttons ===== */
-.btn-month {
-    background-color: #1abc9c;
+/* ===== Buttons & Equal Width ===== */
+.btn-month,
+.btn-calendar,
+#filterBtn,
+#filterAttendanceBtn,
+#filterLeaveBtn {
+    background-color: #23d2aa !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-month:hover,
+.btn-calendar:hover,
+#filterBtn:hover,
+#filterAttendanceBtn:hover,
+#filterLeaveBtn:hover {
+    background-color: #50d2b3 !important;
+    color: #ffffff !important;
+}
+
+.btn-month:disabled,
+.btn-calendar:disabled,
+.btn-download:disabled,
+.btn-meeting:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.btn-download,
+#pdfBtn,
+#downloadPdfBtn,
+#downloadAttendanceBtn,
+#downloadLeaveBtn {
+    background-color: #FF7423 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-download:hover,
+#pdfBtn:hover,
+#downloadPdfBtn:hover,
+#downloadAttendanceBtn:hover,
+#downloadLeaveBtn:hover {
+    background-color: #e65c0d !important;
+    color: #ffffff !important;
+}
+
+.text-purple {
+    color: #7C3AED !important;
+}
+
+/* ===== Action Buttons Container & Equal Width ===== */
+.action-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.action-buttons-container .btn-month,
+.action-buttons-container .btn-download,
+.action-buttons-container .btn-meeting {
+    min-width: 115px;
+    padding: 6px 10px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar-right .btn-calendar,
+.navbar-right .btn-download {
+    min-width: 90px;
+    padding: 6px 10px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 576px) {
+    .action-buttons-container {
+        gap: 10px;
+    }
+
+    .action-buttons-container .btn-month,
+    .action-buttons-container .btn-download,
+    .action-buttons-container .btn-meeting {
+        flex: 1 1 calc(50% - 10px);
+        min-width: 100px;
+    }
+
+    .navbar-right .btn-calendar,
+    .navbar-right .btn-download {
+        flex: 1 1 auto;
+        min-width: 85px;
+    }
+}
+
+/* ===== Meeting Button ===== */
+.btn-meeting {
+    background-color: #7C3AED;
     color: #fff;
     border-radius: 8px;
     padding: 6px 14px;
     border: none;
     transition: 0.3s;
+    font-weight: 600;
 }
 
-.btn-month:hover {
-    background-color: #17a589;
+.btn-meeting:hover {
+    background-color: #6D28D9;
 }
 
-.btn-download {
-    background-color: #FF7423;
-    color: #fff;
-    border-radius: 8px;
-    padding: 6px 14px;
-    border: none;
-    transition: 0.3s;
+.btn-meeting.active-meeting {
+    background-color: #5B21B6;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.4);
+    animation: pulse-meeting 1.5s infinite;
 }
 
-.btn-download:hover {
-    background-color: #d94f21;
+@keyframes pulse-meeting {
+    0%   { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
 }
+
+/* ===== Status Badge Colors ===== */
+.badge-working,  td.status-working  { background-color: #16A34A; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-present,  td.status-present  { background-color: #0F766E; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-break,    td.status-break    { background-color: #F59E0B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-meeting,  td.status-meeting  { background-color: #7C3AED; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-idle,     td.status-idle     { background-color: #64748B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-leave,    td.status-leave    { background-color: #1D4ED8; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-absent,   td.status-absent   { background-color: #DC2626; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
+.badge-partial,  td.status-partial  { background-color: #8B8B8B; color: #fff; border-radius: 12px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; }
 
 /* ===== Info Cards ===== */
 .info-cards {
@@ -191,6 +304,13 @@ a {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
+@media (max-width: 576px) {
+    .stat-card.flex-fill {
+        flex: 1 1 calc(50% - 10px) !important;
+        min-width: 130px;
+    }
+}
+
 /* ===== Calendar ===== */
 .calendar {
     background-color: #e9faff;
@@ -257,9 +377,11 @@ a {
 /* ===== Table ===== */
 .table-container {
     margin-top: 25px;
-    background-color: #eaf9f0;
-    border-radius: 12px;
+    background-color: white;
+    border-radius: 6px;
+    padding: 15px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -271,12 +393,15 @@ table {
 th,
 td {
     padding: 12px;
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
 th {
-    background-color: #d6f5e3;
+    background-color: #adf0da;
     color: #000;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 tr:hover {
@@ -284,7 +409,7 @@ tr:hover {
 }
 
 .status-present {
-    color: #1abc9c;
+    color: #0F766E;
     font-weight: 600;
 }
 
@@ -341,7 +466,10 @@ tr:hover {
 }
 
 /* Small Devices (Mobiles) */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
+    table {
+        font-size: 0.9rem;
+    }
     .sidebar {
         width: 80%;
         overflow-y: auto;
@@ -350,6 +478,17 @@ tr:hover {
 
     .main-content {
         padding: 15px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    th,
+    td {
+        font-size: 0.85rem;
     }
 }
 

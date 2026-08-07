@@ -21,7 +21,7 @@ public class Settings {
     @Column(columnDefinition = "TEXT")
     private String welcomeEmailBody = "Hello,\n\n"
             + "Your employee account has been created. Use the credentials below to log in:\n\n"
-            + "  Login URL : http://localhost:8085/login\n"
+            + "  Login URL : http://localhost:3000/login\n"
             + "  Username  : {username}\n"
             + "  Email     : {email}\n"
             + "  Password  : {password}\n\n"
@@ -57,6 +57,30 @@ public class Settings {
     private String approvalEmailBody = "Dear {name},\n\n"
             + "All your details have been fully approved by HR. You now have complete access to the portal.\n\n"
             + "Regards,\nHR Team";
+
+    @Column(columnDefinition = "TEXT")
+    private String otpEmailSubject = "🔐 Employee Management - Password Reset OTP";
+
+    @Column(columnDefinition = "TEXT")
+    private String otpEmailBody = "Your password reset OTP is: {otp}. It is valid for {expiry_minutes} minutes.";
+
+    @Column(columnDefinition = "TEXT")
+    private String adminAlertEmailSubject = "📋 Onboarding Details Submitted - {name}";
+
+    @Column(columnDefinition = "TEXT")
+    private String adminAlertEmailBody = "Employee {name} ({email}) has submitted onboarding details for review.\n\nDetails Submitted:\n{summary}\n\nRegards,\nEMS System";
+
+    @Column(columnDefinition = "TEXT")
+    private String leaveApprovedEmailSubject = "✅ Leave Request Approved - {leave_type}";
+
+    @Column(columnDefinition = "TEXT")
+    private String leaveApprovedEmailBody = "Dear {name},\n\nYour leave request for {leave_type} from {from_date} to {to_date} has been approved.\n\nRegards,\nHR Team";
+
+    @Column(columnDefinition = "TEXT")
+    private String leaveRejectedEmailSubject = "❌ Leave Request Rejected - {leave_type}";
+
+    @Column(columnDefinition = "TEXT")
+    private String leaveRejectedEmailBody = "Dear {name},\n\nYour leave request for {leave_type} from {from_date} to {to_date} has been rejected.\n\nRegards,\nHR Team";
 
     public String getId() {
         return id;
@@ -152,5 +176,69 @@ public class Settings {
 
     public void setApprovalEmailBody(String approvalEmailBody) {
         this.approvalEmailBody = approvalEmailBody;
+    }
+
+    public String getOtpEmailSubject() {
+        return otpEmailSubject;
+    }
+
+    public void setOtpEmailSubject(String otpEmailSubject) {
+        this.otpEmailSubject = otpEmailSubject;
+    }
+
+    public String getOtpEmailBody() {
+        return otpEmailBody;
+    }
+
+    public void setOtpEmailBody(String otpEmailBody) {
+        this.otpEmailBody = otpEmailBody;
+    }
+
+    public String getAdminAlertEmailSubject() {
+        return adminAlertEmailSubject;
+    }
+
+    public void setAdminAlertEmailSubject(String adminAlertEmailSubject) {
+        this.adminAlertEmailSubject = adminAlertEmailSubject;
+    }
+
+    public String getAdminAlertEmailBody() {
+        return adminAlertEmailBody;
+    }
+
+    public void setAdminAlertEmailBody(String adminAlertEmailBody) {
+        this.adminAlertEmailBody = adminAlertEmailBody;
+    }
+
+    public String getLeaveApprovedEmailSubject() {
+        return leaveApprovedEmailSubject;
+    }
+
+    public void setLeaveApprovedEmailSubject(String leaveApprovedEmailSubject) {
+        this.leaveApprovedEmailSubject = leaveApprovedEmailSubject;
+    }
+
+    public String getLeaveApprovedEmailBody() {
+        return leaveApprovedEmailBody;
+    }
+
+    public void setLeaveApprovedEmailBody(String leaveApprovedEmailBody) {
+        this.leaveApprovedEmailBody = leaveApprovedEmailBody;
+    }
+
+    public String getLeaveRejectedEmailSubject() {
+        return leaveRejectedEmailSubject;
+    }
+
+    public void setLeaveRejectedEmailSubject(String leaveRejectedEmailSubject) {
+        this.leaveRejectedEmailSubject = leaveRejectedEmailSubject;
+    }
+
+    public String getLeaveRejectedEmailBody() {
+        return leaveRejectedEmailBody;
+    }
+
+    public void setLeaveRejectedEmailBody(String leaveRejectedEmailBody) {
+        this.leaveRejectedEmailBody = leaveRejectedEmailBody;
     }
 }

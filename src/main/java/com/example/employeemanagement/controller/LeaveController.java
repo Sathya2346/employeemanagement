@@ -285,6 +285,42 @@ public class LeaveController {
         }
     }
 
+    @PostMapping("/cancel/{leaveId}")
+    @ResponseBody
+    public ResponseEntity<?> cancelLeave(@PathVariable Long leaveId, org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
+        }
+        
+        try {
+            Leave leave = leaveService.getLeaveById(leaveId);
+            String loggedInUsername = authentication.getName();
+            Employee emp = leave.getEmployee();
+            
+            // Check if logged-in user owns the leave or is admin
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_ADMIN"));
+            
+            if (!isAdmin && !emp.getUsername().equalsIgnoreCase(loggedInUsername) && !emp.getEmail().equalsIgnoreCase(loggedInUsername)) {
+                return ResponseEntity.status(403).body(Map.of("message", "❌ Unauthorized: You cannot cancel this leave."));
+            }
+            
+            // Check if leave is cancelable (Pending or Approved)
+            String status = leave.getLeaveStatus();
+            if (!"Pending".equalsIgnoreCase(status) && !"Approved".equalsIgnoreCase(status)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "❌ Only Pending or Approved leaves can be cancelled."));
+            }
+            
+            // Cancel the leave
+            leaveService.cancelLeaveManually(leaveId, loggedInUsername);
+            
+            return ResponseEntity.ok(Map.of("message", "✅ Leave cancelled successfully and balance refunded."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "❌ Failed to cancel leave: " + e.getMessage()));
+        }
+    }
+
     // Helper method for IDOR protection
     private boolean isAuthorized(Long employeeId, org.springframework.security.core.Authentication authentication) {
         if (authentication == null) return false;

@@ -30,4 +30,7 @@ public interface AttendanceService {
     void endIdle(String time);
     void startBreak(String time);
     void endBreak(String time);
+    void startMeeting();
+    void endMeeting();
+    boolean isCheckedInWithoutCheckout(Long employeeId);
 }
