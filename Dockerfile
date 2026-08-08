@@ -11,5 +11,6 @@ FROM eclipse-temurin:17-jre-alpine
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080 10000
+ENV PORT=8080
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
