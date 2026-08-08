@@ -107,7 +107,6 @@ public class EmployeeService {
             return false;
         }
     }
-    }
 
     public boolean login(String email, String password) {
         Employee employee = employeeRepository.findByEmail(email).orElse(null);

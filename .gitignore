@@ -3,6 +3,8 @@ target/
 .gradle/
 **/build/
 **/.gradle/
+node_modules/
+**/node_modules/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
