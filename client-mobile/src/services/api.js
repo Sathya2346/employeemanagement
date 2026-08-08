@@ -1,10 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Base URL configuration
-const BASE_URL = 'http://10.0.2.2:8080/api'; // Android Emulator localhost
-// const BASE_URL = 'http://localhost:8080/api'; // iOS Simulator localhost
-// const BASE_URL = 'http://<YOUR_LOCAL_IP>:8080/api'; // Physical Device
+// Base URL configuration - Connected to Live Render Cloud Backend
+const BASE_URL = 'https://employeemanagement-l53v.onrender.com/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
