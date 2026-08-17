@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "ems-mobile",
+    "slug": "ems-mobile",
+    "version": "1.0.0",
+    "sdkVersion": "50.0.0",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "android": {
+      "package": "com.example.employeemanagement"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c9b5a4ea-718e-4788-9077-caef4832c268"
+      }
+    }
+  }
+}
