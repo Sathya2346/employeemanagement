@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: employeemanagement-backend
+    name: employeemanagement
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
@@ -8,3 +8,5 @@ services:
     envVars:
       - key: PORT
         value: 10000
+      - key: SPRING_DATASOURCE_DRIVER
+        value: com.mysql.cj.jdbc.Driver
