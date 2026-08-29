@@ -9,6 +9,7 @@ import com.example.employeemanagement.model.Attendance;
 public interface AttendanceService {
 
     Attendance saveAttendance(Long employeeId, Attendance attendanceData);
+    Attendance saveAttendance(Long employeeId, Attendance attendanceData, boolean skipAutoCancel);
 
     List<Attendance> getAttendanceByEmployee(Long employeeId);
 
@@ -32,5 +33,7 @@ public interface AttendanceService {
     void endBreak(String time);
     void startMeeting();
     void endMeeting();
+    void startMeetingWithDetails(Long employeeId, String platform, String meetingLink);
+    void processMeetingHeartbeat(Long employeeId);
     boolean isCheckedInWithoutCheckout(Long employeeId);
 }

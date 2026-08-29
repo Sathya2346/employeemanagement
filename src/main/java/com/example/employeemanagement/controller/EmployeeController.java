@@ -99,8 +99,8 @@ public class EmployeeController {
         if (employee.getUserType() == null || employee.getUserType().isEmpty()) {
             employee.setUserType("ROLE_USER");
         }
-        // Default password to the user's personal email (admin does not set it)
-        String rawPassword = employee.getEmail();
+        // Default password: username + "123" (consistent with REST API)
+        String rawPassword = employee.getUsername().trim() + "123";
         employee.setPassword(rawPassword);
         employee.setOverallStatus("PENDING");
 
@@ -120,16 +120,10 @@ public class EmployeeController {
             model.addAttribute("errorMessage", "Email or Username already exists!");
             model.addAttribute("employee", employee);
             return "admin/addEmployee";
-        } catch (org.springframework.mail.MailException e) {
-            System.err.println("SMTP Email Error: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("errorMessage", "Failed to send welcome email. Employee account was NOT created. Please check your SMTP / mail configuration.");
-            model.addAttribute("employee", employee);
-            return "admin/addEmployee";
         } catch (Exception e) {
             System.err.println("Error creating employee: " + e.getMessage());
             e.printStackTrace();
-            model.addAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
+            model.addAttribute("errorMessage", "An error occurred: " + e.getMessage());
             model.addAttribute("employee", employee);
             return "admin/addEmployee";
         }
@@ -262,7 +256,7 @@ public class EmployeeController {
     }
 
     // ✅ 6. Delete employee
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteEmployee(@PathVariable Long id, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         try {
             employeeService.deleteEmployee(id);
@@ -302,18 +296,34 @@ public class EmployeeController {
     
     @GetMapping("/updateEmployee/{id}")
     public String showUpdateForm(@PathVariable("id") Long id, Model model){
-        Employee employee = employeeService.getEmployeeById(id); // Fetch from DB
-        if (employee != null) {
+        try {
+            Employee employee = employeeService.getEmployeeById(id);
+            if (employee == null) {
+                return "redirect:/admin/profile";
+            }
             if (employee.getCompanyDetails() == null) {
                 employee.setCompanyDetails(new CompanyDetails());
             }
             if (employee.getBankDetails() == null) {
                 employee.setBankDetails(new BankDetails());
             }
+            model.addAttribute("employee", employee);
+
+            // Ensure default shift timings exist if table is empty
+            if (shiftTimingRepository.count() == 0) {
+                shiftTimingRepository.save(new com.example.employeemanagement.model.ShiftTiming("Morning (9:00 AM - 6:00 PM)"));
+                shiftTimingRepository.save(new com.example.employeemanagement.model.ShiftTiming("General (10:00 AM - 7:00 PM)"));
+                shiftTimingRepository.save(new com.example.employeemanagement.model.ShiftTiming("Evening (2:00 PM - 11:00 PM)"));
+                shiftTimingRepository.save(new com.example.employeemanagement.model.ShiftTiming("Night (10:00 PM - 6:00 AM)"));
+                shiftTimingRepository.save(new com.example.employeemanagement.model.ShiftTiming("Rotational"));
+            }
+            model.addAttribute("shiftTimings", shiftTimingRepository.findAll());
+            return "admin/updateEmployee";
+        } catch (Exception e) {
+            System.err.println("Error loading update form for employee " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/admin/profile";
         }
-        model.addAttribute("employee", employee);
-        model.addAttribute("shiftTimings", shiftTimingRepository.findAll());
-        return "admin/updateEmployee";
     }
 
     @GetMapping("/attendance")

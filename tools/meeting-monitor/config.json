@@ -1,0 +1,7 @@
+{
+  "server_url": "http://localhost:8085",
+  "employee_id": 2,
+  "poll_interval_seconds": 10,
+  "confidence_threshold": 0.6,
+  "heartbeat_interval_seconds": 30
+}

@@ -64,19 +64,59 @@ public class AdminOnboardingRestController {
 
         boolean hasRejection = false;
 
+        // Whitelist of allowed status fields that can be updated via review
+        java.util.Map<String, String> allowedStatusFields = new java.util.HashMap<>();
+        allowedStatusFields.put("phoneStatus", "phoneRejectionReason");
+        allowedStatusFields.put("addressStatus", "addressRejectionReason");
+        allowedStatusFields.put("cityStatus", "cityRejectionReason");
+        allowedStatusFields.put("genderStatus", "genderRejectionReason");
+        allowedStatusFields.put("dobStatus", "dobRejectionReason");
+        allowedStatusFields.put("emergencyStatus", "emergencyRejectionReason");
+        allowedStatusFields.put("maritalFieldStatus", "maritalFieldRejectionReason");
+        allowedStatusFields.put("languageStatus", "languageRejectionReason");
+        allowedStatusFields.put("bloodStatus", "bloodRejectionReason");
+        allowedStatusFields.put("aadharStatus", "aadharRejectionReason");
+        allowedStatusFields.put("panStatus", "panRejectionReason");
+        allowedStatusFields.put("accountStatus", "accountRejectionReason");
+        allowedStatusFields.put("bankNameStatus", "bankNameRejectionReason");
+        allowedStatusFields.put("ifscStatus", "ifscRejectionReason");
+        allowedStatusFields.put("branchStatus", "branchRejectionReason");
+        allowedStatusFields.put("degreeNameStatus", "degreeNameRejectionReason");
+        allowedStatusFields.put("degreeInstStatus", "degreeInstRejectionReason");
+        allowedStatusFields.put("photoStatus", "photoRejectionReason");
+        allowedStatusFields.put("mark10thStatus", "mark10thRejectionReason");
+        allowedStatusFields.put("mark12thStatus", "mark12thRejectionReason");
+        for (int i = 1; i <= 8; i++) {
+            allowedStatusFields.put("sem" + i + "Status", "sem" + i + "RejectionReason");
+        }
+        allowedStatusFields.put("transferCertStatus", "transferCertRejectionReason");
+        allowedStatusFields.put("provisionalCertStatus", "provisionalCertRejectionReason");
+        allowedStatusFields.put("courseCompletionStatus", "courseCompletionRejectionReason");
+
         for (Map.Entry<String, Object> entry : decisions.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue() != null ? entry.getValue().toString() : "";
 
-            if (key.endsWith("Status") && "REJECTED".equalsIgnoreCase(value)) {
-                hasRejection = true;
-            }
+            // Only allow whitelisted status fields
+            if (allowedStatusFields.containsKey(key)) {
+                try {
+                    java.lang.reflect.Field statusField = EmployeeDetails.class.getDeclaredField(key);
+                    statusField.setAccessible(true);
+                    statusField.set(details, value);
 
-            try {
-                java.lang.reflect.Field field = EmployeeDetails.class.getDeclaredField(key);
-                field.setAccessible(true);
-                field.set(details, value);
-            } catch (Exception ignored) {}
+                    if ("REJECTED".equalsIgnoreCase(value)) {
+                        hasRejection = true;
+                        // Also set the corresponding rejection reason if provided
+                        String reasonKey = allowedStatusFields.get(key);
+                        String reasonValue = decisions.getOrDefault(reasonKey, "").toString();
+                        if (!reasonValue.isEmpty()) {
+                            java.lang.reflect.Field reasonField = EmployeeDetails.class.getDeclaredField(reasonKey);
+                            reasonField.setAccessible(true);
+                            reasonField.set(details, reasonValue);
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
         }
 
         if (hasRejection) {

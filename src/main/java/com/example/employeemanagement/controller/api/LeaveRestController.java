@@ -18,29 +18,27 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.employeemanagement.model.Employee;
 import com.example.employeemanagement.model.Leave;
 import com.example.employeemanagement.repository.EmployeeRepository;
-import com.example.employeemanagement.repository.LeaveRepository;
+import com.example.employeemanagement.service.LeaveService;
 
 @RestController
 @RequestMapping("/api/leave")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "${app.cors.origins:http://localhost:*}")
 public class LeaveRestController {
 
     @Autowired
-    private LeaveRepository leaveRepository;
+    private LeaveService leaveService;
 
     @Autowired
     private EmployeeRepository employeeRepository;
 
     @GetMapping("/all")
     public ResponseEntity<List<Leave>> getAllLeaves() {
-        List<Leave> list = leaveRepository.findAll();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(leaveService.getAllLeaves());
     }
 
     @GetMapping("/userLeave/{employeeId}")
     public ResponseEntity<List<Leave>> getUserLeaves(@PathVariable Long employeeId) {
-        List<Leave> list = leaveRepository.findByEmployeeId(employeeId);
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(leaveService.getLeavesByEmployeeId(employeeId));
     }
 
     @PostMapping("/apply")
@@ -53,18 +51,12 @@ public class LeaveRestController {
             String reason = (String) payload.get("reason");
 
             if (employeeId == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("success", false);
-                err.put("message", "Employee ID is required.");
-                return ResponseEntity.badRequest().body(err);
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Employee ID is required."));
             }
 
             Employee emp = employeeRepository.findById(employeeId).orElse(null);
             if (emp == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("success", false);
-                err.put("message", "Employee not found.");
-                return ResponseEntity.badRequest().body(err);
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Employee not found."));
             }
 
             Leave leave = new Leave();
@@ -74,10 +66,9 @@ public class LeaveRestController {
             if (fromDateStr != null) leave.setLeaveFromDate(LocalDate.parse(fromDateStr));
             if (toDateStr != null) leave.setLeaveToDate(LocalDate.parse(toDateStr));
             leave.setReason(reason);
-            leave.setLeaveStatus("Pending");
-            leave.setLeaveAppliedDate(LocalDate.now());
 
-            Leave saved = leaveRepository.save(leave);
+            // Delegate to service — handles balance deduction, overlap check, working day calc, notifications
+            Leave saved = leaveService.saveLeave(leave);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -85,55 +76,52 @@ public class LeaveRestController {
             response.put("leave", saved);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("success", false);
-            err.put("message", "Failed to apply leave: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(err);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Failed to apply leave: " + e.getMessage()));
         }
     }
 
     @PostMapping("/approve/{id}")
     public ResponseEntity<?> approveLeave(@PathVariable Long id) {
-        Leave leave = leaveRepository.findById(id).orElse(null);
-        if (leave == null) {
-            return ResponseEntity.notFound().build();
-        }
-        leave.setLeaveStatus("Approved");
-        leaveRepository.save(leave);
+        try {
+            Leave leave = leaveService.getLeaveById(id);
+            leave.setLeaveStatus("Approved");
+            leave.setLeaveApprovedBy("Admin");
 
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", true);
-        res.put("message", "Leave approved successfully");
-        return ResponseEntity.ok(res);
+            // Mark leave in attendance records
+            leaveService.markLeaveInAttendance(leave);
+
+            java.util.Map<String, Object> res = new HashMap<>();
+            res.put("success", true);
+            res.put("message", "Leave approved successfully");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @PostMapping("/reject/{id}")
     public ResponseEntity<?> rejectLeave(@PathVariable Long id) {
-        Leave leave = leaveRepository.findById(id).orElse(null);
-        if (leave == null) {
-            return ResponseEntity.notFound().build();
+        try {
+            leaveService.rejectLeave(id);
+            Map<String, Object> res = new HashMap<>();
+            res.put("success", true);
+            res.put("message", "Leave rejected and balance restored");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
-        leave.setLeaveStatus("Rejected");
-        leaveRepository.save(leave);
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", true);
-        res.put("message", "Leave rejected successfully");
-        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/cancel/{id}")
     public ResponseEntity<?> cancelLeave(@PathVariable Long id) {
-        Leave leave = leaveRepository.findById(id).orElse(null);
-        if (leave == null) {
-            return ResponseEntity.notFound().build();
+        try {
+            leaveService.deleteLeave(id);
+            Map<String, Object> res = new HashMap<>();
+            res.put("success", true);
+            res.put("message", "Leave cancelled and balance restored");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
-        leave.setLeaveStatus("Cancelled");
-        leaveRepository.save(leave);
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", true);
-        res.put("message", "Leave cancelled successfully");
-        return ResponseEntity.ok(res);
     }
 }

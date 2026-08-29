@@ -61,17 +61,17 @@ public class EmployeeServiceTest {
     public void testLoginSuccessAndFailure() {
         Employee emp = new Employee();
         emp.setUsername("john_doe");
-        emp.setEmail("john@example.com");
+        emp.setEmail("johndoe@example.com");
         emp.setPassword("mypassword");
         emp.setFirstname("John");
         emp.setLastname("Doe");
         employeeService.registerEmployee(emp);
 
         // Test successful login
-        assertTrue(employeeService.login("john@example.com", "mypassword"));
+        assertTrue(employeeService.login("johndoe@example.com", "mypassword"));
 
         // Test login failure
-        assertFalse(employeeService.login("john@example.com", "wrongpassword"));
+        assertFalse(employeeService.login("johndoe@example.com", "wrongpassword"));
         assertFalse(employeeService.login("unknown@example.com", "mypassword"));
     }
 

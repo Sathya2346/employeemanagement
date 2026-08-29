@@ -17,6 +17,10 @@ public class MeetingSession {
     private LocalTime meetingStart;
     private LocalTime meetingEnd;
     private Long duration; // in minutes
+    private String meetingPlatform;
+    private String meetingLink;
+    private int heartbeatCount = 0;
+    private String verificationStatus = "VERIFIED";
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -33,4 +37,16 @@ public class MeetingSession {
 
     public Long getDuration() { return duration; }
     public void setDuration(Long duration) { this.duration = duration; }
+
+    public String getMeetingPlatform() { return meetingPlatform; }
+    public void setMeetingPlatform(String meetingPlatform) { this.meetingPlatform = meetingPlatform; }
+
+    public String getMeetingLink() { return meetingLink; }
+    public void setMeetingLink(String meetingLink) { this.meetingLink = meetingLink; }
+
+    public int getHeartbeatCount() { return heartbeatCount; }
+    public void setHeartbeatCount(int heartbeatCount) { this.heartbeatCount = heartbeatCount; }
+
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
 }

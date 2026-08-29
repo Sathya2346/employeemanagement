@@ -26,10 +26,17 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOriginPatterns(java.util.List.of("*"));
-        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Allow specific origins for security (local dev, Render deployment, mobile app)
+        configuration.setAllowedOriginPatterns(java.util.List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://*.onrender.com",
+            "exp://*"
+        ));
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -110,11 +117,36 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**") // Stateless REST API; web forms still protected
+            )
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints (no auth required)
                 .requestMatchers("/", "/login", "/auto-login", "/forgot-password", "/verify-otp",
-                    "/reset-password", "/css/**", "/js/**", "/images/**", "/api/**",
-                    "/notification/**", "/actuator/**", "/favicon.ico").permitAll()
+                    "/reset-password", "/css/**", "/js/**", "/images/**",
+                    "/notification/**", "/actuator/**", "/h2-console/**", "/favicon.ico").permitAll()
+                // Public API endpoints (auth not required)
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.POST, "/api/auth/login",
+                    "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password"
+                ).permitAll()
+                // Admin-only API endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Employee data management — Admin only
+                .requestMatchers("/api/employees/**").hasRole("ADMIN")
+                // Attendance — Admin or User (users manage their own via employeeId)
+                .requestMatchers("/api/attendance/**").authenticated()
+                // Leave — Admin or User
+                .requestMatchers("/api/leave/**").authenticated()
+                // Hourly reports — Admin or User
+                .requestMatchers("/api/hourly-reports/**").authenticated()
+                // Notifications — Admin or User
+                .requestMatchers("/api/notifications/**").authenticated()
+                // Auth endpoints that need session (me, logout)
+                .requestMatchers("/api/auth/me", "/api/auth/logout", "/api/auth/my-details").authenticated()
+                // Onboarding — Authenticated users
+                .requestMatchers("/api/onboarding/**").authenticated()
+                // Web pages
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/user/**").hasRole("USER")
                 .anyRequest().authenticated()
@@ -141,6 +173,7 @@ public class SecurityConfig {
                 .sessionFixation().changeSessionId()
                 .maximumSessions(10)
             )
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .securityContext(ctx -> ctx.requireExplicitSave(false));
 
         return http.build();

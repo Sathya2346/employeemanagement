@@ -47,7 +47,8 @@ public class AttendanceControllerTest {
 
         mockMvc.perform(post("/attendance/save/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"attendanceDate\":\"2026-06-01\"}"))
+                .content("{\"attendanceDate\":\"2026-06-01\"}")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk());
     }
 
@@ -72,7 +73,8 @@ public class AttendanceControllerTest {
     public void testIdleStart() throws Exception {
         mockMvc.perform(post("/attendance/idle/start")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"time\":\"2026-06-01T10:00:00\"}"))
+                .content("{\"time\":\"2026-06-01T10:00:00\"}")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Idle Start Recorded"));
     }

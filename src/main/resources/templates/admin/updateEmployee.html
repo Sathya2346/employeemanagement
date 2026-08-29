@@ -99,7 +99,7 @@
                                     <label class="form-label">Shift Timing*</label>
                                     <select class="form-select" th:field="*{companyDetails.shiftTiming}"
                                         th:classappend="${#fields.hasErrors('companyDetails.shiftTiming')} ? 'is-invalid' : ''">
-                                        <option value="" disabled selected>Select Shift</option>
+                                        <option value="" disabled>Select Shift</option>
                                         <option th:each="shift : ${shiftTimings}" th:value="${shift.name}" th:text="${shift.name}"></option>
                                     </select>
                                     <div class="invalid-feedback"
@@ -151,7 +151,7 @@
                             <img th:src="${employee.profileImageSrc}" class="profile-img" alt="profilePic">
                             <div class="profile-body">
                                 <h5 th:text="*{firstname + ' ' + lastname}"></h5>
-                                <p th:text="*{companyDetails.designation}"></p>
+                                 <p th:text="${employee.companyDetails != null ? employee.companyDetails.designation : 'N/A'}"></p>
 
                                 <div class="section-title">Personal Information</div>
                                 <div class="info-box">
@@ -167,11 +167,11 @@
 
                                 <div class="bank-title">Bank Information</div>
                                 <div class="bank-info">
-                                    <p><strong>Bank Name:</strong> <span th:text="*{bankDetails.bankName}"></span></p>
-                                    <p><strong>Account Number:</strong> <span th:text="*{bankDetails.accNumber}"></span>
+                                    <p><strong>Bank Name:</strong> <span th:text="${employee.bankDetails != null ? employee.bankDetails.bankName : 'N/A'}"></span></p>
+                                    <p><strong>Account Number:</strong> <span th:text="${employee.bankDetails != null ? employee.bankDetails.accNumber : 'N/A'}"></span>
                                     </p>
-                                    <p><strong>IFSC Code:</strong> <span th:text="*{bankDetails.ifscCode}"></span></p>
-                                    <p><strong>Pan Card Number:</strong> <span th:text="*{bankDetails.panCard}"></span>
+                                    <p><strong>IFSC Code:</strong> <span th:text="${employee.bankDetails != null ? employee.bankDetails.ifscCode : 'N/A'}"></span></p>
+                                    <p><strong>Pan Card Number:</strong> <span th:text="${employee.bankDetails != null ? employee.bankDetails.panCard : 'N/A'}"></span>
                                     </p>
                                 </div>
                             </div>

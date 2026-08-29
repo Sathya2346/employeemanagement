@@ -135,21 +135,32 @@ select.form-select:focus {
 .btn-success {
     background-color: #23d2aa;
     border: none;
-    transition: background 0.3s;
+    font-weight: 600;
+    white-space: nowrap;
+    border-radius: 8px;
+    padding: 10px 24px;
+    transition: all 0.3s ease;
 }
 
 .btn-success:hover {
-    background-color: #27ae60;
+    background-color: #1abc9c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(35, 210, 170, 0.3);
 }
 
 .btn-secondary {
-    background-color: #bdc3c7;
+    background-color: #94a3b8;
     border: none;
-    transition: background 0.3s;
+    font-weight: 600;
+    white-space: nowrap;
+    border-radius: 8px;
+    padding: 10px 24px;
+    transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-    background-color: #95a5a6;
+    background-color: #64748b;
+    transform: translateY(-1px);
 }
 
 /* ===== Profile Card Section ===== */

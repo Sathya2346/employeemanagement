@@ -12,7 +12,6 @@ body {
 
 .orangeBtn {
     background-color: #FF7423;
-    /* original color */
     color: white;
     transition: all 0.3s ease;
 }
@@ -30,10 +29,8 @@ body {
     justify-content: center;
     background-color: #ffffff;
     animation: fadeIn 1.2s ease;
-    padding: 20px;
-    /* ✅ adds horizontal & vertical space */
+    padding: 15px;
     overflow-x: hidden;
-    /* ✅ prevents horizontal scroll */
 }
 
 .login-card {
@@ -113,6 +110,7 @@ body {
     background-color: transparent;
     border: 1px solid #10b981;
     color: #10b981;
+    border-radius: 10px 0 0 10px !important;
 }
 
 /* First Element (Left Icon) */
@@ -147,12 +145,25 @@ body {
 
 .input-group .form-control:focus {
     box-shadow: none;
-    /* Optional: remove shadow if it looks weird with split borders */
     border-color: #10b981;
 }
 
 .input-group-text>i {
     padding: 8px;
+}
+
+/* Toggle password button */
+#togglePassword {
+    background-color: transparent;
+    border: 1px solid #10b981;
+    color: #10b981;
+    border-radius: 0 10px 10px 0 !important;
+}
+
+#togglePassword:hover {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #10b981;
 }
 
 .btn-login {
@@ -190,7 +201,6 @@ body {
     from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
@@ -201,7 +211,6 @@ body {
         opacity: 0;
         transform: translateY(50px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -212,7 +221,6 @@ body {
     from {
         transform: translateY(0px);
     }
-
     to {
         transform: translateY(-10px);
     }
@@ -223,7 +231,6 @@ body {
         opacity: 0;
         transform: scale(0.9);
     }
-
     to {
         opacity: 1;
         transform: scale(1);
@@ -231,6 +238,8 @@ body {
 }
 
 /* ---------- Responsive ---------- */
+
+/* Tablets and smaller desktops */
 @media (max-width: 992px) {
     .login-card {
         flex-direction: column;
@@ -240,7 +249,7 @@ body {
     .login-right {
         flex: 1 1 100%;
         text-align: center;
-        padding: 40px 25px;
+        padding: 40px 30px;
         width: 100%;
     }
 
@@ -249,16 +258,201 @@ body {
     }
 }
 
-@media (max-width: 576px) {
-    .login-right h2,
-    .login-right h3 {
-        font-size: 24px;
-        text-align: center;
+/* Mobile landscape and small tablets */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 10px;
+        align-items: flex-start;
+        padding-top: 20px;
     }
 
-    .login-right form {
-        margin: 0 auto;
-        width: 100%;
-        max-width: 100%;
+    .login-left {
+        padding: 30px 20px;
+    }
+
+    .login-left img {
+        width: 180px;
+        height: 180px;
+    }
+
+    .login-left h3 {
+        font-size: 20px;
+        margin-top: 15px;
+    }
+
+    .login-left p {
+        font-size: 12px;
+    }
+
+    .login-right {
+        padding: 30px 20px;
+    }
+
+    .login-right h3 {
+        font-size: 22px;
+    }
+}
+
+/* Mobile portrait */
+@media (max-width: 576px) {
+    .login-container {
+        padding: 5px;
+        align-items: flex-start;
+        padding-top: 10px;
+    }
+
+    .login-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .login-left {
+        padding: 25px 15px;
+    }
+
+    .login-left img {
+        width: 140px;
+        height: 140px;
+    }
+
+    .login-left h3 {
+        font-size: 17px;
+        margin-top: 10px;
+    }
+
+    .login-left p {
+        font-size: 11px;
+        margin-top: 8px;
+    }
+
+    .login-right {
+        padding: 25px 15px;
+    }
+
+    .login-right h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .input-group-text {
+        padding: 8px 12px;
+    }
+
+    .input-group-text > i {
+        padding: 5px;
+        font-size: 16px;
+    }
+
+    #togglePassword {
+        padding: 8px 12px;
+    }
+
+    .btn-login {
+        padding: 10px 0;
+        font-size: 15px;
+        margin-top: 10px;
+    }
+
+    .forgot-link {
+        font-size: 13px;
+        margin-top: 8px;
+    }
+}
+
+/* Very small screens (320px - 375px) */
+@media (max-width: 375px) {
+    .login-container {
+        padding: 0;
+        padding-top: 5px;
+    }
+
+    .login-card {
+        border-radius: 10px;
+        margin: 0 5px;
+    }
+
+    .login-left {
+        padding: 20px 12px;
+    }
+
+    .login-left img {
+        width: 120px;
+        height: 120px;
+    }
+
+    .login-left h3 {
+        font-size: 15px;
+    }
+
+    .login-left p {
+        font-size: 10px;
+    }
+
+    .login-right {
+        padding: 20px 12px;
+    }
+
+    .login-right h3 {
+        font-size: 18px;
+    }
+
+    .form-control {
+        padding: 7px 10px;
+        font-size: 13px;
+    }
+
+    .input-group-text {
+        padding: 7px 10px;
+    }
+
+    .input-group-text > i {
+        font-size: 14px;
+    }
+
+    .btn-login {
+        padding: 9px 0;
+        font-size: 14px;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+}
+
+/* Ultra small screens (below 320px) */
+@media (max-width: 320px) {
+    .login-left img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .login-left h3 {
+        font-size: 14px;
+    }
+
+    .login-left p {
+        font-size: 9px;
+    }
+
+    .login-right h3 {
+        font-size: 16px;
+    }
+
+    .form-control {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+
+    .input-group-text {
+        padding: 6px 8px;
+    }
+
+    .btn-login {
+        font-size: 13px;
     }
 }

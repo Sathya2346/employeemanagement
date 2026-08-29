@@ -208,38 +208,7 @@
                                 <div class="col-md-4">
                                     <div class="field-container" th:classappend="${details.dobStatus == 'APPROVED' ? 'status-approved' : (details.dobStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
                                         <label class="form-label small fw-bold">Date of Birth</label>
-                                        <input type="date" class="form-control mb-2" th:field="*{personalDateOfBirth}" id="personalDateOfBirth" min="1950-01-01" max="2008-12-31">
-                                        
-                                        <!-- Quick Selection for Mobile (Day / Month / Year Dropdowns) -->
-                                        <div class="row g-1" id="dobQuickSelect">
-                                            <div class="col-4">
-                                                <select class="form-select form-select-sm" id="dobDaySelect">
-                                                    <option value="">Day</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-4">
-                                                <select class="form-select form-select-sm" id="dobMonthSelect">
-                                                    <option value="">Month</option>
-                                                    <option value="01">Jan</option>
-                                                    <option value="02">Feb</option>
-                                                    <option value="03">Mar</option>
-                                                    <option value="04">Apr</option>
-                                                    <option value="05">May</option>
-                                                    <option value="06">Jun</option>
-                                                    <option value="07">Jul</option>
-                                                    <option value="08">Aug</option>
-                                                    <option value="09">Sep</option>
-                                                    <option value="10">Oct</option>
-                                                    <option value="11">Nov</option>
-                                                    <option value="12">Dec</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-4">
-                                                <select class="form-select form-select-sm" id="dobYearSelect">
-                                                    <option value="">Year</option>
-                                                </select>
-                                            </div>
-                                        </div>
+                                        <input type="date" class="form-control" th:field="*{personalDateOfBirth}" id="personalDateOfBirth" min="1950-01-01" max="2008-12-31">
 
                                         <div class="validation-suggestion suggestion-pending mt-1" id="dobHint"><i class="bi bi-info-circle me-1"></i> Min 18 years old</div>
                                         <div th:if="${details.dobStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
@@ -305,10 +274,10 @@
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <div class="field-container" th:classappend="${details.aadharStatus == 'APPROVED' ? 'status-approved' : (details.aadharStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="form-label small fw-bold">Aadhar Number & Card Copy</label>
+                                        <label class="form-label small fw-bold">Aadhar Number & Card Copy <span class="text-muted fw-normal">(PDF only)</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" th:field="*{aadharNumber}" id="aadharNumber" maxlength="12" placeholder="12-digit UID" style="max-width: 45%;">
-                                            <input type="file" name="aadharFile" class="form-control file-input" accept="image/*,application/pdf">
+                                            <input type="file" name="aadharFile" class="form-control file-input" accept="application/pdf">
                                         </div>
                                         <div class="validation-suggestion suggestion-pending" id="aadharHint"><i class="bi bi-info-circle me-1"></i> Numbers only</div>
                                         <div th:if="${details.aadharStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
@@ -317,10 +286,10 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="field-container" th:classappend="${details.panStatus == 'APPROVED' ? 'status-approved' : (details.panStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="form-label small fw-bold">PAN Number & Card Copy</label>
+                                        <label class="form-label small fw-bold">PAN Number & Card Copy <span class="text-muted fw-normal">(PDF only)</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control text-uppercase" th:field="*{panNumber}" id="panNumber" maxlength="10" placeholder="ABCDE1234F" style="max-width: 45%;">
-                                            <input type="file" name="panFile" class="form-control file-input" accept="image/*,application/pdf">
+                                            <input type="file" name="panFile" class="form-control file-input" accept="application/pdf">
                                         </div>
                                         <div class="validation-suggestion suggestion-pending" id="panHint"><i class="bi bi-info-circle me-1"></i> Standard format</div>
                                         <div th:if="${details.panStatus == 'APPROVED'}" class="approved-check mt-1 small"><i class="bi bi-check-circle-fill me-1"></i> Verified</div>
@@ -377,18 +346,18 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-container" th:classappend="${details.mark10thStatus == 'APPROVED' ? 'status-approved' : (details.mark10thStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="form-label small fw-bold">10th Marksheet (PDF)</label>
+                                        <label class="form-label small fw-bold">10th Marksheet <span class="text-muted fw-normal">(PDF only)</span></label>
                                         <div class="file-input-wrapper">
-                                            <input type="file" name="mark10thFile" class="form-control file-input" accept="application/pdf,image/*">
+                                            <input type="file" name="mark10thFile" class="form-control file-input" accept="application/pdf">
                                         </div>
                                         <div th:if="${details.mark10thStatus == 'REJECTED'}" class="rejection-text">Document Rejected</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-container" th:classappend="${details.mark12thStatus == 'APPROVED' ? 'status-approved' : (details.mark12thStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="form-label small fw-bold">12th Marksheet (PDF)</label>
+                                        <label class="form-label small fw-bold">12th Marksheet <span class="text-muted fw-normal">(PDF only)</span></label>
                                         <div class="file-input-wrapper">
-                                            <input type="file" name="mark12thFile" class="form-control file-input" accept="application/pdf,image/*">
+                                            <input type="file" name="mark12thFile" class="form-control file-input" accept="application/pdf">
                                         </div>
                                     </div>
                                 </div>
@@ -414,7 +383,7 @@
                                 <div th:each="i : ${#numbers.sequence(1, 8)}" class="col-6 col-md-3">
                                     <div class="field-container p-2 small text-center" th:classappend="${details['sem' + i + 'Status'] == 'APPROVED' ? 'status-approved' : (details['sem' + i + 'Status'] == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
                                         <label class="fw-bold mb-1" th:text="'Sem ' + ${i}"></label>
-                                        <input type="file" th:name="'sem' + ${i} + 'File'" class="form-control form-control-sm file-input">
+                                        <input type="file" th:name="'sem' + ${i} + 'File'" class="form-control form-control-sm file-input" accept="application/pdf">
                                         <div th:if="${details['sem' + i + 'Status'] == 'REJECTED'}" class="text-danger x-small mt-1">X REJECTED</div>
                                     </div>
                                 </div>
@@ -423,20 +392,20 @@
                             <div class="row g-3 mt-4">
                                 <div class="col-md-4">
                                     <div class="field-container p-3 text-center" th:classappend="${details.transferCertStatus == 'APPROVED' ? 'status-approved' : (details.transferCertStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="small fw-bold">Transfer Cert.</label>
-                                        <input type="file" name="transferCertFile" class="form-control form-control-sm file-input">
+                                        <label class="small fw-bold">Transfer Cert. <span class="text-muted fw-normal">(PDF)</span></label>
+                                        <input type="file" name="transferCertFile" class="form-control form-control-sm file-input" accept="application/pdf">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-container p-3 text-center" th:classappend="${details.provisionalCertStatus == 'APPROVED' ? 'status-approved' : (details.provisionalCertStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="small fw-bold">Provisional Cert.</label>
-                                        <input type="file" name="provisionalCertFile" class="form-control form-control-sm file-input">
+                                        <label class="small fw-bold">Provisional Cert. <span class="text-muted fw-normal">(PDF)</span></label>
+                                        <input type="file" name="provisionalCertFile" class="form-control form-control-sm file-input" accept="application/pdf">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-container p-3 text-center" th:classappend="${details.courseCompletionStatus == 'APPROVED' ? 'status-approved' : (details.courseCompletionStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">
-                                        <label class="small fw-bold">Course Completion</label>
-                                        <input type="file" name="courseCompletionFile" class="form-control form-control-sm file-input">
+                                        <label class="small fw-bold">Course Completion <span class="text-muted fw-normal">(PDF)</span></label>
+                                        <input type="file" name="courseCompletionFile" class="form-control form-control-sm file-input" accept="application/pdf">
                                     </div>
                                 </div>
                             </div>
@@ -510,64 +479,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(emergencyInput) emergencyInput.addEventListener('input', validateEmergency);
     }
 
-    // 2. DOB Validation & Mobile Quick Dropdowns (Day/Month/Year)
+    // 2. DOB Validation
     const dobInput = document.getElementById('personalDateOfBirth');
-    const dobDaySelect = document.getElementById('dobDaySelect');
-    const dobMonthSelect = document.getElementById('dobMonthSelect');
-    const dobYearSelect = document.getElementById('dobYearSelect');
-
-    if (dobDaySelect && dobYearSelect) {
-        // Populate Days 01 to 31
-        for (let d = 1; d <= 31; d++) {
-            const val = String(d).padStart(2, '0');
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.textContent = val;
-            dobDaySelect.appendChild(opt);
-        }
-
-        // Populate Years 2008 down to 1950 (easy past year selection on mobile)
-        const currentYear = new Date().getFullYear();
-        const maxYear = currentYear - 18;
-        for (let y = maxYear; y >= 1950; y--) {
-            const opt = document.createElement('option');
-            opt.value = String(y);
-            opt.textContent = String(y);
-            dobYearSelect.appendChild(opt);
-        }
-
-        // Sync dropdowns -> Date Input
-        const syncDropdownsToDate = () => {
-            const y = dobYearSelect.value;
-            const m = dobMonthSelect.value;
-            const d = dobDaySelect.value;
-            if (y && m && d) {
-                dobInput.value = `${y}-${m}-${d}`;
-                dobInput.dispatchEvent(new Event('change'));
-            }
-        };
-
-        dobDaySelect.addEventListener('change', syncDropdownsToDate);
-        dobMonthSelect.addEventListener('change', syncDropdownsToDate);
-        dobYearSelect.addEventListener('change', syncDropdownsToDate);
-
-        // Sync Date Input -> Dropdowns
-        const syncDateToDropdowns = () => {
-            if (dobInput && dobInput.value) {
-                const parts = dobInput.value.split('-');
-                if (parts.length === 3) {
-                    dobYearSelect.value = parts[0];
-                    dobMonthSelect.value = parts[1];
-                    dobDaySelect.value = parts[2];
-                }
-            }
-        };
-
-        if (dobInput) {
-            dobInput.addEventListener('change', syncDateToDropdowns);
-            syncDateToDropdowns();
-        }
-    }
 
     if(dobInput) {
         dobInput.addEventListener('change', function() {
@@ -623,12 +536,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 7. File Size Check
+    // 7. File Size Check + PDF-Only Validation for Certificate Fields
     const fileInputs = document.querySelectorAll('.file-input');
     fileInputs.forEach(input => {
         input.addEventListener('change', function() {
-            if (this.files[0] && this.files[0].size > 2 * 1024 * 1024) {
-                alert('File size exceeds 2MB limit. Please upload a smaller file.');
+            if (!this.files[0]) return;
+            const file = this.files[0];
+            // Certificate fields (not photo) must be PDF only
+            const isPhotoField = this.name === 'photoFile';
+            if (!isPhotoField && file.type !== 'application/pdf') {
+                alert('Please upload a PDF file only. Image or Word documents are not allowed for certificates.');
+                this.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit. Please upload a smaller file.');
                 this.value = '';
             }
         });

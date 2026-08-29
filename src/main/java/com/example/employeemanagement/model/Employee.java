@@ -76,7 +76,7 @@ public class Employee implements Serializable {
     
     private Boolean notifyAdminFlag = false;
 
-    @Column(length = 20)
+    @Column(length = 100)
     private String activityStatus = "Idle"; // Working, Idle, Leave, Absent
 
     public String getActivityStatus() { return activityStatus; }
@@ -90,10 +90,16 @@ public class Employee implements Serializable {
     @NotBlank(message = "Username is required")
     private String username;
 
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @JsonIgnore
     private String password;
 
     private String userType;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @JsonIgnore
     private String otp;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @JsonIgnore
     @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss a", timezone = "Asia/Kolkata")
     private LocalDateTime otpExpiry = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 

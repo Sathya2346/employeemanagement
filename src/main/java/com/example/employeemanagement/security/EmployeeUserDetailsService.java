@@ -35,7 +35,6 @@ public class EmployeeUserDetailsService implements UserDetailsService {
 
         if (empOpt.isPresent()) {
             Employee emp = empOpt.get();
-            System.out.println("DEBUG: Found Employee: " + emp.getUsername() + ", Stored Password: " + emp.getPassword());
             return new EmployeeUserDetails(emp);
         }
 

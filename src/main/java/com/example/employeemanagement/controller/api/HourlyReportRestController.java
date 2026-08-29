@@ -34,6 +34,7 @@ public class HourlyReportRestController {
     public ResponseEntity<?> submitHourlyReports(@RequestBody Map<String, Object> payload) {
         try {
             Long employeeId = payload.get("employeeId") != null ? Long.valueOf(payload.get("employeeId").toString()) : null;
+            @SuppressWarnings("unchecked")
             List<Map<String, String>> reportsList = (List<Map<String, String>>) payload.get("reports");
 
             Employee emp = null;

@@ -29,6 +29,7 @@ import com.example.employeemanagement.util.AppConstants;
 @Service
 public class AttendanceServiceImpl implements AttendanceService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AttendanceServiceImpl.class);
     private static final ZoneId IST = AppConstants.IST;
     private static final int GRACE_MINUTES = 10;
 
@@ -83,6 +84,11 @@ public class AttendanceServiceImpl implements AttendanceService {
     // ===============================
     @Override
     public Attendance saveAttendance(Long employeeId, Attendance attendanceData) {
+        return saveAttendance(employeeId, attendanceData, false);
+    }
+
+    @Override
+    public Attendance saveAttendance(Long employeeId, Attendance attendanceData, boolean skipAutoCancel) {
 
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
@@ -90,8 +96,10 @@ public class AttendanceServiceImpl implements AttendanceService {
         LocalDate attendanceDate = Optional.ofNullable(attendanceData.getAttendanceDate())
                 .orElse(LocalDate.now(IST));
 
-        // Automatically cancel any pending/approved leaves for this date
-        leaveService.cancelLeaveDueToCheckIn(employee, attendanceDate);
+        // Only auto-cancel leaves on user-initiated check-in, not on admin edits
+        if (!skipAutoCancel) {
+            leaveService.cancelLeaveDueToCheckIn(employee, attendanceDate);
+        }
 
         Attendance attendance = attendanceRepository
                 .findByEmployee_IdAndAttendanceDate(employeeId, attendanceDate)
@@ -167,17 +175,25 @@ public class AttendanceServiceImpl implements AttendanceService {
         // STATUS (UNCHANGED BASE)
         // ===============================
         // ===============================
-        // STATUS LOGIC (Fixing BUG-07: <4 hours = Absent)
+        // STATUS LOGIC
         // ===============================
         if (Boolean.TRUE.equals(attendance.getLeaveApproved())) {
             attendance.setStatus("Leave");
         } else if (checkIn == null) {
             attendance.setStatus("Absent");
-        } else {
+        } else if (checkOut != null) {
+            // Employee has checked out — determine final status based on work time
             if (workMinutes >= fullWorkMinutes && fullWorkMinutes > 0) {
                 attendance.setStatus("Present");
             } else {
-                attendance.setStatus("Partial");
+                attendance.setStatus("Checked Out");
+            }
+        } else {
+            // Still working — determine based on work time so far
+            if (workMinutes >= fullWorkMinutes && fullWorkMinutes > 0) {
+                attendance.setStatus("Present");
+            } else {
+                attendance.setStatus("Working");
             }
         }
 
@@ -257,9 +273,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setEarlyLeaveMinutes(earlyLeaveMinutes);
 
         // ===============================
-        // ACTIVITY STATUS & NOTIFICATIONS
+        // ACTIVITY STATUS & NOTIFICATIONS (only on state transitions)
         // ===============================
-        if (checkOut != null) {
+        boolean wasCheckedInBefore = attendance.getCheckInTime() != null;
+        boolean wasCheckedOutBefore = attendance.getCheckOutTime() != null;
+
+        if (checkOut != null && !wasCheckedOutBefore) {
+            // First time setting check-out — send notification
             employee.setActivityStatus("Idle");
             notificationService.sendAdminNotification(
                 "Check-Out: " + employee.getFirstname(),
@@ -267,7 +287,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                 "Attendance",
                 attendance.getId()
             );
-        } else if (checkIn != null) {
+        } else if (checkOut != null) {
+            employee.setActivityStatus("Idle");
+        } else if (checkIn != null && !wasCheckedInBefore) {
+            // First time setting check-in — send notification
             employee.setActivityStatus("Working");
             notificationService.sendAdminNotification(
                 "Check-In: " + employee.getFirstname(),
@@ -275,6 +298,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 "Attendance",
                 attendance.getId()
             );
+        } else if (checkIn != null) {
+            employee.setActivityStatus("Working");
         }
 
         employeeRepository.save(employee);
@@ -383,9 +408,70 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     // ===============================
+    // AUTO-DETECT: Cleanup stale meeting heartbeats
+    // If no heartbeat received for 2 minutes, end the meeting
+    // ===============================
+    private final java.util.concurrent.ConcurrentHashMap<Long, Long> lastMeetingHeartbeatTime = new java.util.concurrent.ConcurrentHashMap<>(); // employeeId -> last heartbeat epoch ms
+    private static final long MEETING_STALE_THRESHOLD_MS = 120_000; // 2 minutes
+
+    public void processMeetingHeartbeatWithTimestamp(Long employeeId) {
+        lastMeetingHeartbeatTime.put(employeeId, System.currentTimeMillis());
+        processMeetingHeartbeat(employeeId);
+    }
+
+    @Scheduled(fixedRate = 30000) // Check every 30 seconds
+    public void cleanupStaleMeetingHeartbeats() {
+        long now = System.currentTimeMillis();
+
+        // Only iterate employees that have an active heartbeat entry (avoids findAll)
+        java.util.Iterator<java.util.Map.Entry<Long, Long>> it = lastMeetingHeartbeatTime.entrySet().iterator();
+        while (it.hasNext()) {
+            java.util.Map.Entry<Long, Long> entry = it.next();
+            Long empId = entry.getKey();
+            Long lastHb = entry.getValue();
+
+            if (lastHb == null || (now - lastHb) <= MEETING_STALE_THRESHOLD_MS) {
+                continue; // Still fresh or null
+            }
+
+            // Heartbeat is stale — auto-end meeting
+            log.info("[Auto-Detect] Cleaning up stale meeting for employee {} (no heartbeat for {}ms)",
+                empId, now - lastHb);
+            it.remove(); // Remove from map
+
+            // Fetch employee and update status
+            Employee emp = employeeRepository.findById(empId).orElse(null);
+            if (emp != null) {
+                emp.setActivityStatus("Working");
+                employeeRepository.save(emp);
+
+                // Close any open meeting session
+                LocalDate today = LocalDate.now(IST);
+                Attendance att = attendanceRepository.findByEmployeeAndAttendanceDate(emp, today).orElse(null);
+                if (att != null) {
+                    meetingSessionRepository.findByAttendanceIdAndMeetingEndIsNull(att.getId())
+                        .ifPresent(session -> {
+                            LocalTime end = LocalTime.now(IST);
+                            session.setMeetingEnd(end);
+                            long seconds = Duration.between(session.getMeetingStart(), end).getSeconds();
+                            long mins = Math.max(0, Math.round(seconds / 60.0));
+                            if (seconds > 0 && mins == 0) mins = 1;
+                            session.setDuration(mins);
+                            meetingSessionRepository.save(session);
+
+                            long existing = att.getTotalMeetingTime() != null ? att.getTotalMeetingTime() : 0;
+                            att.setTotalMeetingTime(existing + mins);
+                            attendanceRepository.save(att);
+                        });
+                }
+            }
+        }
+    }
+
+    // ===============================
     // IDLE TIME (UNCHANGED)
     // ===============================
-    private final Map<Long, LocalDateTime> lastIdleStartMap = new HashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, LocalDateTime> lastIdleStartMap = new java.util.concurrent.ConcurrentHashMap<>();
 
     private Employee getLoggedInEmployee() {
         try {
@@ -569,6 +655,53 @@ public class AttendanceServiceImpl implements AttendanceService {
                             long existing = record.getTotalMeetingTime() != null ? record.getTotalMeetingTime() : 0;
                             record.setTotalMeetingTime(existing + mins);
                             attendanceRepository.save(record);
+                        });
+                });
+        }
+    }
+
+    @Override
+    public void startMeetingWithDetails(Long employeeId, String platform, String meetingLink) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee != null) {
+            employee.setActivityStatus("In Meeting (" + (platform != null ? platform : "Live") + ")");
+            employeeRepository.save(employee);
+
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    // Close any open session first
+                    meetingSessionRepository.findByAttendanceIdAndMeetingEndIsNull(record.getId())
+                        .ifPresent(open -> {
+                            open.setMeetingEnd(LocalTime.now(IST));
+                            long mins = Duration.between(open.getMeetingStart(), open.getMeetingEnd()).toMinutes();
+                            open.setDuration(Math.max(mins, 0));
+                            meetingSessionRepository.save(open);
+                        });
+
+                    MeetingSession session = new MeetingSession();
+                    session.setAttendance(record);
+                    session.setMeetingStart(LocalTime.now(IST));
+                    session.setMeetingPlatform(platform != null ? platform : "Manual Meeting");
+                    session.setMeetingLink(meetingLink);
+                    session.setVerificationStatus("VERIFIED");
+                    meetingSessionRepository.save(session);
+                });
+        }
+    }
+
+    @Override
+    public void processMeetingHeartbeat(Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee != null) {
+            // Track heartbeat timestamp for stale detection
+            lastMeetingHeartbeatTime.put(employeeId, System.currentTimeMillis());
+            
+            attendanceRepository.findByEmployeeAndAttendanceDate(employee, LocalDate.now(IST))
+                .ifPresent(record -> {
+                    meetingSessionRepository.findByAttendanceIdAndMeetingEndIsNull(record.getId())
+                        .ifPresent(session -> {
+                            session.setHeartbeatCount(session.getHeartbeatCount() + 1);
+                            meetingSessionRepository.save(session);
                         });
                 });
         }

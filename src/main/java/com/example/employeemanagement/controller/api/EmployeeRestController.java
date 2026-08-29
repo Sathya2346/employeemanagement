@@ -80,8 +80,8 @@ public class EmployeeRestController {
             }
 
             Employee emp = new Employee();
-            emp.setFirstname(firstname);
-            emp.setLastname(lastname);
+            emp.setFirstname(com.example.employeemanagement.util.InputSanitizer.sanitize(firstname));
+            emp.setLastname(com.example.employeemanagement.util.InputSanitizer.sanitize(lastname));
             emp.setEmail(email);
             emp.setUsername(username);
             emp.setUserType(userType);
@@ -141,23 +141,42 @@ public class EmployeeRestController {
                     existingEmployee.setCompanyDetails(exCd);
                 }
 
+                // Validate required fields
+                if (cd.getEmployeeEmail() == null || cd.getEmployeeEmail().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Employee company email is required."));
+                }
+                if (cd.getDesignation() == null || cd.getDesignation().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Designation is required."));
+                }
+                if (cd.getJoiningDate() == null) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Joining date is required."));
+                }
+                if (cd.getShiftTiming() == null || cd.getShiftTiming().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Shift timing is required."));
+                }
+                if (cd.getStatus() == null || cd.getStatus().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Status is required."));
+                }
+
                 java.time.LocalDate dob = existingEmployee.getDateOfBirth();
                 java.time.LocalDate doj = cd.getJoiningDate();
                 if (dob != null && doj != null) {
                     if (doj.isBefore(dob.plusYears(18))) {
-                        Map<String, Object> err = new HashMap<>();
-                        err.put("success", false);
-                        err.put("message", "Joining date must be at least 18 years after Date of Birth");
-                        return ResponseEntity.badRequest().body(err);
+                        return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Joining date must be at least 18 years after Date of Birth"));
                     }
                 }
 
-                exCd.setEmployeeEmail(cd.getEmployeeEmail());
-                exCd.setDesignation(cd.getDesignation());
-                exCd.setShiftTiming(cd.getShiftTiming());
+                // Validate email format
+                if (!cd.getEmployeeEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid company email format."));
+                }
+
+                exCd.setEmployeeEmail(cd.getEmployeeEmail().trim());
+                exCd.setDesignation(cd.getDesignation().trim());
+                exCd.setShiftTiming(cd.getShiftTiming().trim());
                 exCd.setJoiningDate(cd.getJoiningDate());
                 exCd.setLeavingDate(cd.getLeavingDate());
-                exCd.setStatus(cd.getStatus());
+                exCd.setStatus(cd.getStatus().trim());
             }
 
             Employee saved = employeeService.saveEmployee(existingEmployee);
@@ -178,6 +197,11 @@ public class EmployeeRestController {
             response.put("success", true);
             response.put("message", "Employee deleted successfully");
             return ResponseEntity.ok(response);
+        } catch (com.example.employeemanagement.exception.ResourceNotFoundException ex) {
+            Map<String, Object> err = new HashMap<>();
+            err.put("success", false);
+            err.put("message", ex.getMessage());
+            return ResponseEntity.status(404).body(err);
         } catch (org.springframework.dao.DataIntegrityViolationException ex) {
             Map<String, Object> err = new HashMap<>();
             err.put("success", false);

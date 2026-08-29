@@ -68,7 +68,8 @@ public class OnboardingControllerTest {
         mockMvc.perform(post("/user/onboarding/submit")
                 .sessionAttr("employeeId", 1L)
                 .param("personalPhone", "1234567890")
-                .param("bankName", "My Bank"))
+                .param("bankName", "My Bank")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/user/onboarding"));
 
@@ -103,7 +104,8 @@ public class OnboardingControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     public void testSubmitReviewRedirect() throws Exception {
         mockMvc.perform(post("/admin/onboarding/review/2")
-                .param("phoneStatus", "APPROVED"))
+                .param("phoneStatus", "APPROVED")
+                .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/onboarding/pending"));
 

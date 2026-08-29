@@ -80,10 +80,29 @@ public class EmployeeService {
     @Transactional
     public void createEmployeeWithEmail(Employee employee, String rawPassword) {
         saveEmployee(employee);
-        sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendWelcomeEmail(employee.getEmail(), employee.getUsername(), rawPassword);
+            } catch (Exception e) {
+                System.err.println("⚠️ Welcome email dispatch error: " + e.getMessage());
+            }
+        });
     }
 
     public boolean sendWelcomeEmail(String email, String username, String password) {
+        System.out.println("\n========================================================================");
+        System.out.println("📧 [WELCOME EMAIL DISPATCH]");
+        System.out.println("   Recipient Email : " + email);
+        System.out.println("   Username        : " + username);
+        System.out.println("   Default Password: " + password);
+        System.out.println("========================================================================\n");
+
+        if (senderEmail == null || senderEmail.trim().isEmpty()) {
+            System.err.println("⚠️ NOTICE: Gmail SMTP Username ('spring.mail.username') is not configured in application.properties.");
+            System.err.println("   To receive actual emails in your inbox, set your Gmail address and 16-character App Password in application.properties or environment variables.");
+            return false;
+        }
+
         try {
             java.util.Map<String, String> vars = new java.util.HashMap<>();
             vars.put("username", username);
@@ -92,7 +111,7 @@ public class EmployeeService {
 
             String[] rendered = emailTemplateService.renderTemplate("WELCOME_EMAIL", vars,
                     "🎉 Welcome to Employee Management System — Your Login Credentials",
-                    "Hello,\n\nYour employee account has been created. Username: " + username + ", Email: " + email + ", Password: " + password);
+                    "Hello,\n\nYour employee account has been created successfully!\n\nLogin Details:\nUsername: " + username + "\nEmail: " + email + "\nPassword: " + password + "\n\nPlease login at http://localhost:8085 or http://localhost:8081.");
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(senderEmail);
@@ -100,10 +119,11 @@ public class EmployeeService {
             message.setSubject(rendered[0]);
             message.setText(rendered[1]);
             mailSender.send(message);
+            System.out.println("✅ Welcome Email delivered live to " + email + "!");
             return true;
         } catch (Exception e) {
-            System.err.println("=== FAILED TO SEND WELCOME EMAIL ===");
-            e.printStackTrace();
+            System.err.println("❌ SMTP Delivery Exception: " + e.getMessage());
+            System.err.println("   Please check your Gmail App Password and network internet connection.");
             return false;
         }
     }
@@ -149,6 +169,11 @@ public class EmployeeService {
 
     @Transactional
     public void deleteEmployee(Long id) {
+        // Check if employee exists first
+        if (!employeeRepository.existsById(id)) {
+            throw new com.example.employeemanagement.exception.ResourceNotFoundException("Employee not found with id: " + id);
+        }
+
         // 1. Delete Notifications tied to Leaves
         List<com.example.employeemanagement.model.Leave> leaves = leaveRepository.findByEmployeeId(id);
         if (leaves != null && !leaves.isEmpty()) {
@@ -210,7 +235,6 @@ public class EmployeeService {
                     } else if (attendance.getBreakStart() != null && attendance.getBreakEnd() == null) {
                         employee.setActivityStatus("Break");
                     } else {
-                        // Use current DB status which is tracked in real-time (Working vs Idle vs Meeting vs Break)
                         String currentStatus = employee.getActivityStatus();
                         if (!"Idle".equals(currentStatus) && !"Working".equals(currentStatus) 
                             && !"Break".equals(currentStatus) && !"On Break".equals(currentStatus) 
@@ -228,7 +252,7 @@ public class EmployeeService {
 
     // ------------------- FORGOT PASSWORD (WORKS FOR BOTH EMPLOYEE + ADMIN) -------------------
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
     private String senderEmail;
 
     public void sendOtp(String email) {
@@ -262,7 +286,7 @@ public class EmployeeService {
                     "Your password reset OTP is: " + otp + ". It is valid for " + OTP_EXPIRATION_MINUTES + " minutes.");
 
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(senderEmail);
+            message.setFrom(senderEmail != null && !senderEmail.isEmpty() ? senderEmail : "noreply@company.com");
             message.setTo(email);
             message.setSubject(rendered[0]);
             message.setText(rendered[1]);
@@ -272,7 +296,6 @@ public class EmployeeService {
                     mailSender.send(message);
                 } catch (Exception e) {
                     System.err.println("Failed to send OTP email: " + e.getMessage());
-                    e.printStackTrace();
                 }
             });
         } catch (Exception e) {

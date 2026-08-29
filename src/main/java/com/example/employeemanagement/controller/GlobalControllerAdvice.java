@@ -20,22 +20,31 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute
     public void addAttributes(Model model) {
-        List<Employee> employees = employeeService.getAllEmployees();
-        long pendingOnboardingCount = employees.stream()
-                .filter(e -> "DETAILS_SUBMITTED".equals(e.getOverallStatus())
-                        || "CHANGES_REQUESTED".equals(e.getOverallStatus()))
-                .count();
-        model.addAttribute("pendingOnboardingCount", pendingOnboardingCount);
+        try {
+            List<Employee> employees = employeeService.getAllEmployees();
+            long pendingOnboardingCount = employees.stream()
+                    .filter(e -> "DETAILS_SUBMITTED".equals(e.getOverallStatus())
+                            || "CHANGES_REQUESTED".equals(e.getOverallStatus()))
+                    .count();
+            model.addAttribute("pendingOnboardingCount", pendingOnboardingCount);
+        } catch (Exception e) {
+            model.addAttribute("pendingOnboardingCount", 0L);
+        }
 
-        // ✅ Add Unread Notification Counts
-        model.addAttribute("adminUnreadCount", notificationService.countUnreadForAdmin());
+        try {
+            model.addAttribute("adminUnreadCount", notificationService.countUnreadForAdmin());
+        } catch (Exception e) {
+            model.addAttribute("adminUnreadCount", 0L);
+        }
 
-        // Default value to prevent SpelEvaluationException (null > 0) in template
         model.addAttribute("userUnreadCount", 0L);
-
-        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            model.addAttribute("userUnreadCount", notificationService.countUnreadByUsername(auth.getName()));
+        try {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                model.addAttribute("userUnreadCount", notificationService.countUnreadByUsername(auth.getName()));
+            }
+        } catch (Exception e) {
+            // Ignore - default value already set
         }
     }
 }

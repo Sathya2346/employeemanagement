@@ -491,7 +491,9 @@ const initUserAttendance = () => {
     const date = formatDateForDB(new Date());
     const shift = document.getElementById("shiftTiming")?.value || "-";
     const meetingTotal = meetingSessions.length > 0 ? `${meetingSessions.length} session(s)` : "-";
-    updateTable(date, shift, checkInTime ? formatTimeDisplay(checkInTime) : "--:--", checkOutTime ? formatTimeDisplay(checkOutTime) : "--:--", meetingTotal, "-", checkOutTime ? "Present" : "Working");
+    const restoreStatus = checkOutTime ? "Present" : "Working";
+    const restoreStatusClass = checkOutTime ? 'badge-present' : 'badge-working';
+    updateTable(date, shift, checkInTime ? formatTimeDisplay(checkInTime) : "--:--", checkOutTime ? formatTimeDisplay(checkOutTime) : "--:--", meetingTotal, "-", restoreStatus, restoreStatusClass);
     updateBreakTime();
     updateMeetingTime();
     updateStatusBadge();
@@ -509,7 +511,7 @@ const initUserAttendance = () => {
     updateStatusBadge();
     const date = formatDateForDB(checkInTime);
     const shift = document.getElementById("shiftTiming")?.value || "-";
-    updateTable(date, shift, formatTimeDisplay(checkInTime), "--:--", "-", "-", "Working");
+    updateTable(date, shift, formatTimeDisplay(checkInTime), "--:--", "-", "-", "Working", 'badge-working');
     await fetch(`/attendance/save/${employeeId}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ attendanceDate: formatDateForDB(checkInTime), checkInTime: formatTimeForDB(checkInTime), username }) });
     await loadUserAttendance();
   });
@@ -810,6 +812,214 @@ const initUserAttendance = () => {
     });
   }
 
+
+  // ══════════════════════════════════════════════════════════════
+  // AUTO-DETECT: Page Visibility API + Audio Detection
+  // Detects when user switches to Teams/Zoom or other meeting apps
+  // ══════════════════════════════════════════════════════════════
+  let autoDetectEnabled = true;
+  let hiddenTimer = null;
+  let autoMeetingActive = false;
+  let autoHeartbeatInterval = null;
+  let lastVisibilityChange = Date.now();
+  const HIDDEN_THRESHOLD_MS = 30000; // 30 seconds before auto-starting meeting
+  const HEARTBEAT_INTERVAL_MS = 30000; // Send heartbeat every 30s
+
+  // Audio detection: monitor microphone usage (indicates active meeting)
+  let audioStream = null;
+  let audioContext = null;
+  let analyser = null;
+  let micCheckInterval = null;
+  let isMicActive = false;
+
+  async function startMicMonitoring() {
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(audioStream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+
+      micCheckInterval = setInterval(() => {
+        if (!analyser) return;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        const sum = dataArray.reduce((a, b) => a + b, 0);
+        const avg = sum / dataArray.length;
+        const wasActive = isMicActive;
+        isMicActive = avg > 5; // Threshold: mic is picking up audio
+
+        // If mic becomes active while tab was hidden or in auto-meeting, confirm meeting
+        if (isMicActive && !wasActive && autoMeetingActive) {
+          console.log("[EMS Auto-Detect] Microphone activity confirmed — in meeting");
+        }
+      }, 3000);
+    } catch (e) {
+      console.log("[EMS Auto-Detect] Mic permission denied — using tab-switch detection only");
+    }
+  }
+
+  function stopMicMonitoring() {
+    if (micCheckInterval) clearInterval(micCheckInterval);
+    if (audioStream) audioStream.getTracks().forEach(t => t.stop());
+    if (audioContext && audioContext.state !== 'closed') audioContext.close();
+    audioStream = null;
+    audioContext = null;
+    analyser = null;
+    micCheckInterval = null;
+    isMicActive = false;
+  }
+
+  async function sendMeetingStatus(status) {
+    if (!employeeId) return;
+    try {
+      await fetch(`/api/attendance/meeting-status/${employeeId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: status,
+          platform: "auto-detect",
+          meetingLink: null
+        })
+      });
+    } catch (e) {
+      console.error("[EMS Auto-Detect] Failed to send status:", e);
+    }
+  }
+
+  function startAutoMeeting() {
+    if (autoMeetingActive || !checkInTime || checkOutTime) return;
+    console.log("[EMS Auto-Detect] Tab hidden > 30s — starting meeting auto-detect");
+    autoMeetingActive = true;
+    meetingSessions.push({ start: new Date(), end: null });
+    isInMeeting = true;
+    if (meetingBtn) {
+      meetingBtn.textContent = "End Meeting";
+      meetingBtn.classList.add("active-meeting");
+    }
+    meetingInterval = setInterval(updateMeetingTime, 1000);
+    updateStatusBadge("In Meeting");
+    sendMeetingStatus("in_meeting");
+
+    // Start heartbeat
+    autoHeartbeatInterval = setInterval(() => {
+      if (autoMeetingActive) {
+        sendMeetingStatus("heartbeat");
+      }
+    }, HEARTBEAT_INTERVAL_MS);
+
+    // Start mic monitoring if permission granted
+    startMicMonitoring();
+    saveSession();
+  }
+
+  function endAutoMeeting() {
+    if (!autoMeetingActive) return;
+    console.log("[EMS Auto-Detect] Tab visible again — ending auto-meeting");
+    autoMeetingActive = false;
+    const activeM = meetingSessions.find(m => !m.end);
+    if (activeM) activeM.end = new Date();
+    isInMeeting = false;
+    if (meetingBtn) {
+      meetingBtn.textContent = "Start Meeting";
+      meetingBtn.classList.remove("active-meeting");
+    }
+    clearInterval(meetingInterval);
+    clearInterval(autoHeartbeatInterval);
+    autoHeartbeatInterval = null;
+    updateMeetingTime();
+    updateStatusBadge();
+    sendMeetingStatus("not_in_meeting");
+    stopMicMonitoring();
+    saveSession();
+    loadUserAttendance();
+  }
+
+  // Page Visibility: detect tab switching
+  document.addEventListener("visibilitychange", () => {
+    if (!autoDetectEnabled || !checkInTime || checkOutTime || isOnBreak) return;
+
+    if (document.hidden) {
+      // Tab became hidden — start countdown to auto-meeting
+      lastVisibilityChange = Date.now();
+      if (hiddenTimer) clearTimeout(hiddenTimer);
+      hiddenTimer = setTimeout(() => {
+        if (document.hidden && !autoMeetingActive && !isInMeeting) {
+          startAutoMeeting();
+        }
+      }, HIDDEN_THRESHOLD_MS);
+    } else {
+      // Tab became visible — cancel pending timer or end auto-meeting
+      if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; }
+      if (autoMeetingActive) {
+        endAutoMeeting();
+      }
+    }
+  });
+
+  // Also detect window blur (user clicked another app)
+  window.addEventListener("blur", () => {
+    if (!autoDetectEnabled || !checkInTime || checkOutTime || isOnBreak || autoMeetingActive) return;
+    lastVisibilityChange = Date.now();
+    if (hiddenTimer) clearTimeout(hiddenTimer);
+    hiddenTimer = setTimeout(() => {
+      if (!document.hasFocus() && !autoMeetingActive && !isInMeeting) {
+        startAutoMeeting();
+      }
+    }, HIDDEN_THRESHOLD_MS);
+  });
+
+  window.addEventListener("focus", () => {
+    if (hiddenTimer) { clearTimeout(hiddenTimer); hiddenTimer = null; }
+    if (autoMeetingActive) {
+      endAutoMeeting();
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // POLLING: Check for external meeting status (desktop/mobile)
+  // ══════════════════════════════════════════════════════════════
+  let pollInterval = setInterval(async () => {
+    if (!employeeId || !checkInTime || checkOutTime) return;
+    try {
+      const res = await fetch(`/api/attendance/meeting-status/${employeeId}`);
+      if (res.ok) {
+        const data = await res.json();
+        // If desktop/mobile started a meeting, sync it to web
+        if (data.inMeeting && !isInMeeting && !autoMeetingActive) {
+          console.log("[EMS Auto-Detect] External meeting detected — syncing");
+          meetingSessions.push({ start: new Date(), end: null });
+          isInMeeting = true;
+          if (meetingBtn) {
+            meetingBtn.textContent = "End Meeting";
+            meetingBtn.classList.add("active-meeting");
+          }
+          meetingInterval = setInterval(updateMeetingTime, 1000);
+          updateStatusBadge("In Meeting");
+        } else if (!data.inMeeting && isInMeeting && !autoMeetingActive) {
+          // External client ended the meeting
+          const activeM = meetingSessions.find(m => !m.end);
+          if (activeM) activeM.end = new Date();
+          isInMeeting = false;
+          if (meetingBtn) {
+            meetingBtn.textContent = "Start Meeting";
+            meetingBtn.classList.remove("active-meeting");
+          }
+          clearInterval(meetingInterval);
+          updateMeetingTime();
+          updateStatusBadge();
+        }
+      }
+    } catch (e) { /* silent */ }
+  }, 10000); // Poll every 10 seconds
+
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", () => {
+    if (autoMeetingActive) endAutoMeeting();
+    stopMicMonitoring();
+    clearInterval(pollInterval);
+  });
 
   // ===== INITIALIZE =====
   loadSession();
