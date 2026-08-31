@@ -5,50 +5,53 @@ import { AuthContext } from '../context/AuthContext';
 import { COLORS } from '../constants/colors';
 
 const AppDrawer = ({ navigation, state }) => {
-  const { user, role, logout } = useContext(AuthContext);
+  const { role, logout } = useContext(AuthContext);
   const isAdmin = role === 'ADMIN';
 
-  const activeRouteName = state?.routes?.[state.index]?.name || (isAdmin ? 'AdminDashboard' : 'UserDashboard');
-
   const adminNavItems = [
-    { label: 'Overview', route: 'AdminDashboard', icon: 'home-outline' },
+    { label: 'Overview', route: 'AdminDashboard', tab: true, icon: 'home-outline' },
     { label: 'Add Employee', route: 'AddEmployee', icon: 'person-add-outline' },
-    { label: 'Employee List', route: 'EmployeeList', icon: 'person-outline' },
-    { label: 'Pending Onboarding', route: 'AdminPendingOnboarding', icon: 'clipboard-check-outline' },
-    { label: 'Attendance', route: 'AdminAttendance', icon: 'time-outline' },
-    { label: 'Leave', route: 'AdminLeave', icon: 'calendar-outline' },
+    { label: 'Employee List', route: 'EmployeeList', tab: true, icon: 'people-outline' },
+    { label: 'Pending Onboarding', route: 'AdminPendingOnboarding', icon: 'clipboard-outline' },
+    { label: 'Attendance', route: 'AdminAttendance', tab: true, icon: 'time-outline' },
+    { label: 'Leave', route: 'AdminLeave', tab: true, icon: 'calendar-outline' },
     { label: 'Hourly Reports', route: 'AdminHourlyReports', icon: 'list-outline' },
-    { label: 'Notifications', route: 'AdminNotifications', icon: 'notifications-outline' },
+    { label: 'Notifications', route: 'AdminNotifications', tab: true, icon: 'notifications-outline' },
     { label: 'Settings', route: 'AdminSettings', icon: 'settings-outline' },
+    { label: 'Profile', route: 'AdminProfile', icon: 'person-outline' },
   ];
 
   const userNavItems = [
-    { label: 'Overview', route: 'UserDashboard', icon: 'home-outline' },
-    { label: 'Profile', route: 'UserProfile', icon: 'person-outline' },
-    { label: 'Attendance', route: 'UserAttendance', icon: 'time-outline' },
-    { label: 'Leave', route: 'UserLeave', icon: 'calendar-outline' },
+    { label: 'Overview', route: 'UserDashboard', tab: true, icon: 'home-outline' },
+    { label: 'Profile', route: 'UserProfile', tab: true, icon: 'person-outline' },
+    { label: 'Attendance', route: 'UserAttendance', tab: true, icon: 'time-outline' },
+    { label: 'Leave', route: 'UserLeave', tab: true, icon: 'calendar-outline' },
     { label: 'Hourly Report', route: 'UserHourlyReport', icon: 'list-outline' },
     { label: 'Onboarding Status', route: 'UserOnboarding', icon: 'clipboard-outline' },
-    { label: 'Notification', route: 'UserNotification', icon: 'notifications-outline' },
+    { label: 'Notification', route: 'UserNotification', tab: true, icon: 'notifications-outline' },
   ];
 
   const navItems = isAdmin ? adminNavItems : userNavItems;
+  const drawerRoute = state?.routes?.[state.index];
+  const nestedRoute = drawerRoute?.state?.routes?.[drawerRoute.state.index]?.name;
+  const activeRouteName = nestedRoute || drawerRoute?.name || (isAdmin ? 'AdminDashboard' : 'UserDashboard');
 
   const handleNavigate = (item) => {
-    navigation.navigate(item.route);
+    if (item.tab) {
+      navigation.navigate('MainTabs', { screen: item.route });
+    } else {
+      navigation.navigate(item.route);
+    }
     navigation.closeDrawer();
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.brandTitle}>EMS</Text>
-        <Text style={styles.userSubtitle} numberOfLines={1}>
-          {user?.firstname || (isAdmin ? 'Admin' : 'Employee')} {user?.lastname || ''}
-        </Text>
+      <View style={styles.brandHeader}>
+        <Text style={styles.brand}>EMS</Text>
       </View>
 
-      <ScrollView style={styles.scrollList} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {navItems.map((item) => {
           const isActive = activeRouteName === item.route;
           return (
@@ -56,36 +59,33 @@ const AppDrawer = ({ navigation, state }) => {
               key={item.route}
               style={[styles.navLink, isActive && styles.activeNavLink]}
               onPress={() => handleNavigate(item)}
-              activeOpacity={0.7}
+              activeOpacity={0.75}
             >
               <Ionicons name={item.icon} size={19} color={COLORS.white} style={styles.icon} />
-              <Text style={[styles.navLabel, isActive && styles.activeNavLabel]}>{item.label}</Text>
+              <Text style={styles.navLabel}>{item.label}</Text>
             </TouchableOpacity>
           );
         })}
       </ScrollView>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.7}>
-        <Ionicons name="log-out-outline" size={20} color={COLORS.white} style={styles.icon} />
-        <Text style={styles.logoutLabel}>Logout</Text>
+      <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.75}>
+        <Ionicons name="log-out-outline" size={19} color={COLORS.white} style={styles.icon} />
+        <Text style={styles.navLabel}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary, paddingVertical: 15, paddingHorizontal: 15 },
-  header: { alignItems: 'center', paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.25)', marginBottom: 10 },
-  brandTitle: { fontSize: 24, fontWeight: '700', color: COLORS.white, letterSpacing: 1 },
-  userSubtitle: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.9)', marginTop: 4 },
-  scrollList: { flex: 1, paddingTop: 4 },
-  navLink: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginVertical: 2 },
-  activeNavLink: { backgroundColor: COLORS.primaryHover, transform: [{ translateX: 5 }] },
-  icon: { marginRight: 10 },
-  navLabel: { fontSize: 16, fontWeight: '500', color: COLORS.white },
-  activeNavLabel: { fontWeight: '500', color: COLORS.white },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)', marginTop: 8 },
-  logoutLabel: { fontSize: 16, fontWeight: '500', color: COLORS.white },
+  container: { flex: 1, backgroundColor: COLORS.primary, padding: 15 },
+  brandHeader: { paddingBottom: 15 },
+  brand: { color: COLORS.white, fontSize: 24, fontWeight: '700', letterSpacing: 0.5 },
+  scrollContent: { paddingTop: 0, paddingBottom: 12 },
+  navLink: { flexDirection: 'row', alignItems: 'center', minHeight: 40, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginVertical: 2 },
+  activeNavLink: { backgroundColor: COLORS.active },
+  icon: { width: 20, marginRight: 10 },
+  navLabel: { flex: 1, color: COLORS.white, fontSize: 16, fontWeight: '400' },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 40, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, marginTop: 4 },
 });
 
 export default AppDrawer;
