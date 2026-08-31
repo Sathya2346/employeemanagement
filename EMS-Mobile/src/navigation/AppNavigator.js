@@ -1,4 +1,5 @@
-import React, { useContext, useWindowDimensions } from 'react';
+import React, { useContext } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { COLORS } from '../constants/colors';
@@ -6,13 +7,11 @@ import { AuthContext } from '../context/AuthContext';
 import LoadingView from '../components/LoadingView';
 import AppDrawer from '../components/AppDrawer';
 
-// Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import VerifyOtpScreen from '../screens/auth/VerifyOtpScreen';
 import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 
-// Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import EmployeeListScreen from '../screens/admin/EmployeeListScreen';
 import AddEmployeeScreen from '../screens/admin/AddEmployeeScreen';
@@ -27,7 +26,6 @@ import AdminNotificationsScreen from '../screens/admin/AdminNotificationsScreen'
 import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
 import AdminProfileScreen from '../screens/admin/AdminProfileScreen';
 
-// User Screens
 import UserDashboardScreen from '../screens/user/UserDashboardScreen';
 import UserAttendanceScreen from '../screens/user/UserAttendanceScreen';
 import UserLeaveScreen from '../screens/user/UserLeaveScreen';
@@ -54,10 +52,7 @@ function AdminDrawerNavigator() {
         drawerType: 'slide',
         overlayColor: 'rgba(0,0,0,0.5)',
         swipeEnabled: true,
-        drawerStyle: {
-          width: drawerWidth,
-          backgroundColor: COLORS.primary,
-        },
+        drawerStyle: { width: drawerWidth, backgroundColor: COLORS.primary },
       }}
     >
       <Drawer.Screen name="AdminDashboard" component={AdminDashboardScreen} />
@@ -70,11 +65,7 @@ function AdminDrawerNavigator() {
       <Drawer.Screen name="AdminNotifications" component={AdminNotificationsScreen} />
       <Drawer.Screen name="AdminSettings" component={AdminSettingsScreen} />
       <Drawer.Screen name="AdminProfile" component={AdminProfileScreen} />
-      <Drawer.Screen
-        name="AdminReviewOnboarding"
-        component={AdminReviewOnboardingScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
-      />
+      <Drawer.Screen name="AdminReviewOnboarding" component={AdminReviewOnboardingScreen} options={{ drawerItemStyle: { display: 'none' } }} />
     </Drawer.Navigator>
   );
 }
@@ -101,10 +92,7 @@ function UserDrawerNavigator() {
         drawerType: 'slide',
         overlayColor: 'rgba(0,0,0,0.5)',
         swipeEnabled: true,
-        drawerStyle: {
-          width: drawerWidth,
-          backgroundColor: COLORS.primary,
-        },
+        drawerStyle: { width: drawerWidth, backgroundColor: COLORS.primary },
       }}
     >
       <Drawer.Screen name="UserDashboard" component={UserDashboardScreen} />
@@ -114,11 +102,7 @@ function UserDrawerNavigator() {
       <Drawer.Screen name="UserHourlyReport" component={UserHourlyReportScreen} />
       <Drawer.Screen name="UserOnboarding" component={UserOnboardingScreen} />
       <Drawer.Screen name="UserNotification" component={UserNotificationScreen} />
-      <Drawer.Screen
-        name="NotificationDetail"
-        component={NotificationDetailScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
-      />
+      <Drawer.Screen name="NotificationDetail" component={NotificationDetailScreen} options={{ drawerItemStyle: { display: 'none' } }} />
     </Drawer.Navigator>
   );
 }
@@ -133,16 +117,9 @@ function UserStackNavigator() {
 
 export default function AppNavigator() {
   const { user, role, loading } = useContext(AuthContext);
+  if (loading) return <LoadingView message="Initializing EMS Mobile..." />;
 
-  if (loading) {
-    return <LoadingView message="Initializing EMS Mobile..." />;
-  }
-
-  const userNeedsOnboarding =
-    role === 'USER' &&
-    user &&
-    user.overallStatus &&
-    user.overallStatus !== 'FULLY_APPROVED';
+  const userNeedsOnboarding = role === 'USER' && user && user.overallStatus && user.overallStatus !== 'FULLY_APPROVED';
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
