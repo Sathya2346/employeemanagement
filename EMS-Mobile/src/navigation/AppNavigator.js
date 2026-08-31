@@ -45,52 +45,52 @@ const UserStack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
 
-// ────────────────────────────────────────────────────
-// Admin Tab Navigator (only 5 visible tabs + hidden non-detail screens)
-// ────────────────────────────────────────────────────
+const tabScreenOptions = ({ route }) => ({
+  headerShown: false,
+  tabBarActiveTintColor: COLORS.primary,
+  tabBarInactiveTintColor: COLORS.textSecondary,
+  tabBarStyle: {
+    height: 64,
+    paddingBottom: 7,
+    paddingTop: 7,
+    backgroundColor: COLORS.surface,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  tabBarLabelStyle: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  tabBarIcon: ({ focused, color }) => {
+    const icons = {
+      AdminDashboard: focused ? 'home' : 'home-outline',
+      AddEmployee: focused ? 'person-add' : 'person-add-outline',
+      AdminAttendance: focused ? 'time' : 'time-outline',
+      AdminLeave: focused ? 'calendar' : 'calendar-outline',
+      AdminSettings: focused ? 'settings' : 'settings-outline',
+      UserDashboard: focused ? 'home' : 'home-outline',
+      UserAttendance: focused ? 'time' : 'time-outline',
+      UserLeave: focused ? 'calendar' : 'calendar-outline',
+      UserHourlyReport: focused ? 'list-circle' : 'list-circle-outline',
+      UserProfile: focused ? 'person' : 'person-outline',
+    };
+    return <Ionicons name={icons[route.name] || 'apps-outline'} size={22} color={color} />;
+  },
+});
+
 function AdminTabNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: '#23d2aa',
-        tabBarInactiveTintColor: '#64748b',
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: '#ffffff',
-          borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'AdminDashboard') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'AddEmployee') {
-            iconName = focused ? 'person-add' : 'person-add-outline';
-          } else if (route.name === 'AdminAttendance') {
-            iconName = focused ? 'time' : 'time-outline';
-          } else if (route.name === 'AdminLeave') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'AdminSettings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          }
-          return <Ionicons name={iconName || 'apps-outline'} size={22} color={color} />;
-        },
-      })}
-    >
-      {/* 5 visible tabs */}
+    <Tab.Navigator screenOptions={tabScreenOptions}>
       <Tab.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ tabBarLabel: 'Overview' }} />
       <Tab.Screen name="AddEmployee" component={AddEmployeeScreen} options={{ tabBarLabel: 'Add Employee' }} />
       <Tab.Screen name="AdminAttendance" component={AdminAttendanceScreen} options={{ tabBarLabel: 'Attendance' }} />
       <Tab.Screen name="AdminLeave" component={AdminLeaveScreen} options={{ tabBarLabel: 'Leave' }} />
       <Tab.Screen name="AdminSettings" component={AdminSettingsScreen} options={{ tabBarLabel: 'Settings' }} />
-      {/* Hidden secondary screens — NOT detail screens */}
       <Tab.Screen name="AdminNotifications" component={AdminNotificationsScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="EmployeeList" component={EmployeeListScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="AdminPendingOnboarding" component={AdminPendingOnboardingScreen} options={{ tabBarButton: () => null }} />
@@ -101,30 +101,17 @@ function AdminTabNavigator() {
   );
 }
 
-// ────────────────────────────────────────────────────
-// Admin Drawer (wraps tabs)
-// ────────────────────────────────────────────────────
 function AdminDrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <AppDrawer {...props} />}
-      screenOptions={{
-        headerShown: false,
-        drawerStyle: {
-          width: 250,
-          backgroundColor: '#23d2aa',
-        },
-      }}
+      screenOptions={{ headerShown: false, drawerStyle: { width: 250, backgroundColor: COLORS.primary } }}
     >
       <Drawer.Screen name="AdminMainTabs" component={AdminTabNavigator} />
     </Drawer.Navigator>
   );
 }
 
-// ────────────────────────────────────────────────────
-// Admin Stack — wraps Drawer + detail screens (ViewEmployeeDetails, UpdateEmployee)
-// This makes ViewEmployeeDetails ↔ UpdateEmployee navigation work as proper stack push/pop
-// ────────────────────────────────────────────────────
 function AdminStackNavigator() {
   return (
     <AdminStack.Navigator screenOptions={{ headerShown: false }}>
@@ -135,51 +122,14 @@ function AdminStackNavigator() {
   );
 }
 
-// ────────────────────────────────────────────────────
-// User Tab Navigator
-// ────────────────────────────────────────────────────
 function UserTabNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: '#23d2aa',
-        tabBarInactiveTintColor: '#64748b',
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: '#ffffff',
-          borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'UserDashboard') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'UserAttendance') {
-            iconName = focused ? 'time' : 'time-outline';
-          } else if (route.name === 'UserLeave') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'UserHourlyReport') {
-            iconName = focused ? 'list-circle' : 'list-circle-outline';
-          } else if (route.name === 'UserProfile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-          return <Ionicons name={iconName || 'apps-outline'} size={22} color={color} />;
-        },
-      })}
-    >
+    <Tab.Navigator screenOptions={tabScreenOptions}>
       <Tab.Screen name="UserDashboard" component={UserDashboardScreen} options={{ tabBarLabel: 'Overview' }} />
       <Tab.Screen name="UserAttendance" component={UserAttendanceScreen} options={{ tabBarLabel: 'Attendance' }} />
       <Tab.Screen name="UserLeave" component={UserLeaveScreen} options={{ tabBarLabel: 'Leave' }} />
       <Tab.Screen name="UserHourlyReport" component={UserHourlyReportScreen} options={{ tabBarLabel: 'Hourly Report' }} />
       <Tab.Screen name="UserProfile" component={UserProfileScreen} options={{ tabBarLabel: 'Profile' }} />
-      {/* Secondary Screens */}
       <Tab.Screen name="UserNotification" component={UserNotificationScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="NotificationDetail" component={NotificationDetailScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="UserOnboarding" component={UserOnboardingScreen} options={{ tabBarButton: () => null }} />
@@ -187,29 +137,17 @@ function UserTabNavigator() {
   );
 }
 
-// ────────────────────────────────────────────────────
-// User Drawer
-// ────────────────────────────────────────────────────
 function UserDrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <AppDrawer {...props} />}
-      screenOptions={{
-        headerShown: false,
-        drawerStyle: {
-          width: 250,
-          backgroundColor: '#23d2aa',
-        },
-      }}
+      screenOptions={{ headerShown: false, drawerStyle: { width: 250, backgroundColor: COLORS.primary } }}
     >
       <Drawer.Screen name="UserMainTabs" component={UserTabNavigator} />
     </Drawer.Navigator>
   );
 }
 
-// ────────────────────────────────────────────────────
-// User Stack (wraps drawer — allows stack screens later if needed)
-// ────────────────────────────────────────────────────
 function UserStackNavigator() {
   return (
     <UserStack.Navigator screenOptions={{ headerShown: false }}>
@@ -218,19 +156,11 @@ function UserStackNavigator() {
   );
 }
 
-// ────────────────────────────────────────────────────
-// Root Navigator
-// ────────────────────────────────────────────────────
 export default function AppNavigator() {
   const { user, role, loading } = useContext(AuthContext);
+  if (loading) return <LoadingView message="Initializing EMS Mobile..." />;
 
-  if (loading) {
-    return <LoadingView message="Initializing EMS Mobile..." />;
-  }
-
-  // Check if USER needs to complete onboarding before accessing dashboard
-  const userNeedsOnboarding = role === 'USER' && user &&
-    user.overallStatus && user.overallStatus !== 'FULLY_APPROVED';
+  const userNeedsOnboarding = role === 'USER' && user && user.overallStatus && user.overallStatus !== 'FULLY_APPROVED';
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -242,17 +172,11 @@ export default function AppNavigator() {
           <RootStack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </RootStack.Group>
       ) : role === 'ADMIN' ? (
-        <RootStack.Group>
-          <RootStack.Screen name="AdminMain" component={AdminStackNavigator} />
-        </RootStack.Group>
+        <RootStack.Screen name="AdminMain" component={AdminStackNavigator} />
       ) : userNeedsOnboarding ? (
-        <RootStack.Group>
-          <RootStack.Screen name="UserOnboarding" component={UserOnboardingScreen} />
-        </RootStack.Group>
+        <RootStack.Screen name="UserOnboarding" component={UserOnboardingScreen} />
       ) : (
-        <RootStack.Group>
-          <RootStack.Screen name="UserMain" component={UserStackNavigator} />
-        </RootStack.Group>
+        <RootStack.Screen name="UserMain" component={UserStackNavigator} />
       )}
     </RootStack.Navigator>
   );
