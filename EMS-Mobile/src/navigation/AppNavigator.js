@@ -2,6 +2,8 @@ import React, { useContext } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { AuthContext } from '../context/AuthContext';
 import LoadingView from '../components/LoadingView';
@@ -39,33 +41,82 @@ const RootStack = createNativeStackNavigator();
 const AdminStack = createNativeStackNavigator();
 const UserStack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
+const AdminTabs = createBottomTabNavigator();
+const UserTabs = createBottomTabNavigator();
+
+const tabOptions = ({ route }) => ({
+  headerShown: false,
+  tabBarActiveTintColor: COLORS.primary,
+  tabBarInactiveTintColor: COLORS.muted,
+  tabBarStyle: {
+    height: 62,
+    paddingTop: 5,
+    paddingBottom: 7,
+    backgroundColor: COLORS.card,
+    borderTopColor: COLORS.border,
+  },
+  tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+  tabBarIcon: ({ color, size, focused }) => {
+    const icons = {
+      AdminDashboard: focused ? 'home' : 'home-outline',
+      EmployeeList: focused ? 'people' : 'people-outline',
+      AdminAttendance: focused ? 'time' : 'time-outline',
+      AdminLeave: focused ? 'calendar' : 'calendar-outline',
+      AdminNotifications: focused ? 'notifications' : 'notifications-outline',
+      UserDashboard: focused ? 'home' : 'home-outline',
+      UserProfile: focused ? 'person' : 'person-outline',
+      UserAttendance: focused ? 'time' : 'time-outline',
+      UserLeave: focused ? 'calendar' : 'calendar-outline',
+      UserNotification: focused ? 'notifications' : 'notifications-outline',
+    };
+    return <Ionicons name={icons[route.name] || 'ellipse-outline'} size={size} color={color} />;
+  },
+});
+
+function AdminTabsNavigator() {
+  return (
+    <AdminTabs.Navigator screenOptions={tabOptions}>
+      <AdminTabs.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Overview' }} />
+      <AdminTabs.Screen name="EmployeeList" component={EmployeeListScreen} options={{ title: 'Employees' }} />
+      <AdminTabs.Screen name="AdminAttendance" component={AdminAttendanceScreen} options={{ title: 'Attendance' }} />
+      <AdminTabs.Screen name="AdminLeave" component={AdminLeaveScreen} options={{ title: 'Leave' }} />
+      <AdminTabs.Screen name="AdminNotifications" component={AdminNotificationsScreen} options={{ title: 'Alerts' }} />
+    </AdminTabs.Navigator>
+  );
+}
+
+function UserTabsNavigator() {
+  return (
+    <UserTabs.Navigator screenOptions={tabOptions}>
+      <UserTabs.Screen name="UserDashboard" component={UserDashboardScreen} options={{ title: 'Overview' }} />
+      <UserTabs.Screen name="UserProfile" component={UserProfileScreen} options={{ title: 'Profile' }} />
+      <UserTabs.Screen name="UserAttendance" component={UserAttendanceScreen} options={{ title: 'Attendance' }} />
+      <UserTabs.Screen name="UserLeave" component={UserLeaveScreen} options={{ title: 'Leave' }} />
+      <UserTabs.Screen name="UserNotification" component={UserNotificationScreen} options={{ title: 'Alerts' }} />
+    </UserTabs.Navigator>
+  );
+}
 
 function AdminDrawerNavigator() {
   const { width } = useWindowDimensions();
-  const drawerWidth = width <= 767 ? width * 0.8 : width <= 992 ? width * 0.7 : 260;
-
+  const drawerWidth = Math.min(Math.max(width * 0.8, 260), 320);
   return (
     <Drawer.Navigator
       drawerContent={(props) => <AppDrawer {...props} />}
       screenOptions={{
         headerShown: false,
         drawerType: 'slide',
-        overlayColor: 'rgba(0,0,0,0.5)',
+        overlayColor: 'rgba(0,0,0,0.45)',
         swipeEnabled: true,
         drawerStyle: { width: drawerWidth, backgroundColor: COLORS.primary },
       }}
     >
-      <Drawer.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+      <Drawer.Screen name="MainTabs" component={AdminTabsNavigator} />
       <Drawer.Screen name="AddEmployee" component={AddEmployeeScreen} />
-      <Drawer.Screen name="EmployeeList" component={EmployeeListScreen} />
       <Drawer.Screen name="AdminPendingOnboarding" component={AdminPendingOnboardingScreen} />
-      <Drawer.Screen name="AdminAttendance" component={AdminAttendanceScreen} />
-      <Drawer.Screen name="AdminLeave" component={AdminLeaveScreen} />
       <Drawer.Screen name="AdminHourlyReports" component={AdminHourlyReportsScreen} />
-      <Drawer.Screen name="AdminNotifications" component={AdminNotificationsScreen} />
       <Drawer.Screen name="AdminSettings" component={AdminSettingsScreen} />
       <Drawer.Screen name="AdminProfile" component={AdminProfileScreen} />
-      <Drawer.Screen name="AdminReviewOnboarding" component={AdminReviewOnboardingScreen} options={{ drawerItemStyle: { display: 'none' } }} />
     </Drawer.Navigator>
   );
 }
@@ -76,33 +127,28 @@ function AdminStackNavigator() {
       <AdminStack.Screen name="AdminDrawer" component={AdminDrawerNavigator} />
       <AdminStack.Screen name="ViewEmployeeDetails" component={ViewEmployeeDetailsScreen} />
       <AdminStack.Screen name="UpdateEmployee" component={UpdateEmployeeScreen} />
+      <AdminStack.Screen name="AdminReviewOnboarding" component={AdminReviewOnboardingScreen} />
     </AdminStack.Navigator>
   );
 }
 
 function UserDrawerNavigator() {
   const { width } = useWindowDimensions();
-  const drawerWidth = width <= 767 ? width * 0.8 : width <= 992 ? width * 0.7 : 260;
-
+  const drawerWidth = Math.min(Math.max(width * 0.8, 260), 320);
   return (
     <Drawer.Navigator
       drawerContent={(props) => <AppDrawer {...props} />}
       screenOptions={{
         headerShown: false,
         drawerType: 'slide',
-        overlayColor: 'rgba(0,0,0,0.5)',
+        overlayColor: 'rgba(0,0,0,0.45)',
         swipeEnabled: true,
         drawerStyle: { width: drawerWidth, backgroundColor: COLORS.primary },
       }}
     >
-      <Drawer.Screen name="UserDashboard" component={UserDashboardScreen} />
-      <Drawer.Screen name="UserProfile" component={UserProfileScreen} />
-      <Drawer.Screen name="UserAttendance" component={UserAttendanceScreen} />
-      <Drawer.Screen name="UserLeave" component={UserLeaveScreen} />
+      <Drawer.Screen name="MainTabs" component={UserTabsNavigator} />
       <Drawer.Screen name="UserHourlyReport" component={UserHourlyReportScreen} />
       <Drawer.Screen name="UserOnboarding" component={UserOnboardingScreen} />
-      <Drawer.Screen name="UserNotification" component={UserNotificationScreen} />
-      <Drawer.Screen name="NotificationDetail" component={NotificationDetailScreen} options={{ drawerItemStyle: { display: 'none' } }} />
     </Drawer.Navigator>
   );
 }
@@ -111,6 +157,7 @@ function UserStackNavigator() {
   return (
     <UserStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <UserStack.Screen name="UserDrawer" component={UserDrawerNavigator} />
+      <UserStack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
     </UserStack.Navigator>
   );
 }
