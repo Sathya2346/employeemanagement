@@ -1,21 +1,27 @@
 # EMS Mobile
 
-React Native / Expo mobile frontend for `Sathya2346/employeemanagement`.
+React Native / Expo mobile UI for the Employee Management System.
 
-## Architecture
+## Roles
+- Admin panel
+- Employee panel
 
-React Native Mobile + Thymeleaf Web -> existing Spring backend -> existing database.
+Technician functionality is intentionally excluded.
 
-The mobile client uses the existing `/api/auth/login` endpoint and keeps business logic in the backend.
+## Screens
+### Admin
+Dashboard, Employees, Add Employee, Employee Details, Update Employee, Attendance, Leave, Hourly Reports, Notifications, Profile, Settings.
 
-## Run
+### Employee
+Dashboard, Attendance, Leave, Hourly Reports, Notifications, Profile, Onboarding.
 
+## Run locally
 ```bash
 cd mobile
 npm install
-npm start
+npx expo start
 ```
 
-For Android emulator, the development API base is `http://10.0.2.2:8080`. For a physical device, replace it with the host machine's LAN address in `App.js`.
+Start the Spring Boot backend before testing API actions. For Android emulator the API base is `http://10.0.2.2:8080`; for a physical device replace it with the computer's LAN IP.
 
-The existing Thymeleaf templates, backend controllers, APIs, and database are not moved or replaced. The mobile UI follows the existing login visual language: Poppins-style typography, emerald `#10b981`, pale green `#d1fae5`, white cards, rounded controls, and responsive spacing.
+The mobile UI is implemented as a role-based shell and is designed to use the existing Spring Boot backend rather than duplicating business logic.
