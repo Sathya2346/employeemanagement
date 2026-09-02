@@ -6,7 +6,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "parity:test": "node parity-test.js"
   },
   "dependencies": {
     "@expo/vector-icons": "15.0.3",
