@@ -1,0 +1,2 @@
+export const API_BASE_URL = 'http://10.0.2.2:8080';
+export const COLORS = { mint:'#23d2aa', mintLight:'#d1fae5', mintHover:'#50d2b3', orange:'#FF7423', orangeDark:'#e65c0d', page:'#f5f9f8', text:'#111827', muted:'#6b7280', border:'#e5e7eb', white:'#fff', danger:'#dc3545' };
